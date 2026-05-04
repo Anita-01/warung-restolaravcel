@@ -5,13 +5,12 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\LoginAdminController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ReservationController;
 
 Route::get('/', [MenuController::class, 'index']);
 
 
-Route::get('/user/reserved', function () {
-    return view('user.reserved');
-})->name('reserved');
+
 
 
 Route::get('/admin/loginadmin', function () {
@@ -32,6 +31,12 @@ Route::post('/products/updateProduct', [ProductController::class, 'updateProduct
 Route::get('/products/search', [ProductController::class, 'search']);
 Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 Route::get('/user/menu', [UserController::class, 'index'])->name('viewmenu');
+Route::get('/reserved', [UserController::class, 'createreserved'])->name('reserved');
+Route::post('/reservation', [ReservationController::class, 'makeReservation'])->name('reservation.store');
+Route::get('/queue-data', [ReservationController::class, 'queueData']);
+Route::get('/reservation/{id}', [ReservationController::class, 'detailReservation'])->name('reservation.detail');
+Route::get('/invoice/{id}', [ReservationController::class, 'downloadInvoice'])->name('invoice.download');
+Route::get('/trace/{id}', [ReservationController::class, 'traceOrder'])->name('trace.order');
 
 
 Route::get('/products/add', [ProductController::class, 'add'])->name('products.add');

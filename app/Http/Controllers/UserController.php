@@ -11,4 +11,9 @@ class UserController extends Controller
         $products = Product::all();
         return view('user.menu', compact('products'));
     }
+    public function createreserved()
+{
+    $products = Product::all();
+    return view('user.reserved', compact('products'));
+}
 }

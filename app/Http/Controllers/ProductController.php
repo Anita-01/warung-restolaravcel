@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    
    
     public function index()
     {
@@ -82,5 +83,9 @@ class ProductController extends Controller
             'success' => true,
             'message' => 'Data berhasil dihapus'
         ]);
+    }
+
+    public function totalPrice(Request $request){
+        $total = $request->total_price;
     }
 }

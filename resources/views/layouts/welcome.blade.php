@@ -40,6 +40,7 @@
                                 <a href="booking.html" class="dropdown-item">Booking</a>
                                 <a href="team.html" class="dropdown-item">Our Team</a>
                                 <a href="testimonial.html" class="dropdown-item">Testimonial</a>
+                                 {{-- -<a href="{{ route('trace.order', $reservation->id) }}"> - --}}
                             </div>
                         </div>
                         <a href="{{ route('login') }}" class="nav-item nav-link">Login</a>
