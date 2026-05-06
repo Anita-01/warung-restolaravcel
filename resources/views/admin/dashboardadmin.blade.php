@@ -53,7 +53,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" href="{{ route('admin.orders.index') }}">
                             <i class="bi bi-file-earmark me-2"></i> Orders
                         </a>
                     </li>
@@ -121,7 +121,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link text-danger" href="#">
+                        <a class="nav-link text-danger" href="{{ route('home') }}">
                             <i class="bi bi-box-arrow-right me-2"></i> Sign out
                         </a>
                     </li>

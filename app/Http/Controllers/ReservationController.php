@@ -117,7 +117,7 @@ public function downloadInvoice($id)
 
     return $pdf->download('invoice-'.$reservation->id.'.pdf');
 }
-public function traceOrder()
+public function traceOrder($id)
     {
 $reservation = Reservation::with('items.product')->find($id);
 
@@ -128,6 +128,21 @@ if (!$reservation) {
         ]);
     }
     return view('user.traceorder', compact('reservation'));
+}
+
+public function traceConfirm(Request $request)
+{
+    $request->validate([
+        'reservation_id' => 'required|integer',
+    ]);
+
+    $reservation = Reservation::find($request->reservation_id);
+
+    if (!$reservation) {
+        return back()->with('error', 'Data reservasi tidak ditemukan');
+    }
+
+    return redirect()->route('trace.order', $reservation->id);
 }
 
 }
