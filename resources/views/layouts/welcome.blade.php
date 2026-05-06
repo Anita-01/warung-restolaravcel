@@ -33,20 +33,23 @@
                         <a href="index.html" class="nav-item nav-link active">Home</a>
                         <a href="about.html" class="nav-item nav-link">About</a>
                         <a href="service.html" class="nav-item nav-link">Service</a>
-                        <a href="{{ route('viewmenu') }} " class="nav-item nav-link">Menu</a>
+                        <a href="{{ route('menu') }} " class="nav-item nav-link">Menu</a>
+                        <a href="{{ route('trace.order') }}" class="nav-item nav-link">Tracking Order</a>
                         <div class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
                             <div class="dropdown-menu m-0">
                                 <a href="booking.html" class="dropdown-item">Booking</a>
                                 <a href="team.html" class="dropdown-item">Our Team</a>
                                 <a href="testimonial.html" class="dropdown-item">Testimonial</a>
-                                 {{-- -<a href="{{ route('trace.order', $reservation->id) }}"> - --}}
+                                
                             </div>
                         </div>
                         <a href="{{ route('login') }}" class="nav-item nav-link">Login</a>
                     </div>
                     <a href="{{ route('reserved') }}" class="btn btn-primary py-2 px-4">Book A Table</a>
                 </div>
+
+
             </nav>
 
             <div class="container-xxl py-5 bg-dark hero-header mb-5">

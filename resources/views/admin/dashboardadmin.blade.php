@@ -65,8 +65,8 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-people me-2"></i> Customers
+                        <a class="nav-link" href="{{ route('admin.users') }}">
+                            <i class="bi bi-people me-2"></i> Data Admin
                         </a>
                     </li>
 

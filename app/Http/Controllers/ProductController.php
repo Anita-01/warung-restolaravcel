@@ -88,4 +88,13 @@ class ProductController extends Controller
     public function totalPrice(Request $request){
         $total = $request->total_price;
     }
+
+
+    public function viewMenu()
+{
+    $products = Product::with('category')->get();
+
+    return view('user.menu', compact('products'));
+}
+    
 }

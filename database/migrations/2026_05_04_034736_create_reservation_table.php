@@ -19,7 +19,16 @@ return new class extends Migration
              $table->integer('total_price')->default(0);
             $table->timestamps();;
             $table->integer('queue_number')->nullable();
-    $table->string('status')->default('pending'); 
+    $table->string('invoice')->unique();
+
+$table->enum('status', [
+    'pending',
+    'confirmed',
+    'in preparation',
+    'served',
+    'completed',
+    'canceled'
+])->default('pending');
 
     // status pesanan 
     // pending

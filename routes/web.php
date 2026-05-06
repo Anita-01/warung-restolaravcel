@@ -6,8 +6,10 @@ use App\Http\Controllers\LoginAdminController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\AdminUserController;
 
-Route::get('/', [MenuController::class, 'index']);
+
+Route::get('/', [MenuController::class, 'index'])->name('index');
 
 
 
@@ -36,7 +38,10 @@ Route::post('/reservation', [ReservationController::class, 'makeReservation'])->
 Route::get('/queue-data', [ReservationController::class, 'queueData']);
 Route::get('/reservation/{id}', [ReservationController::class, 'detailReservation'])->name('reservation.detail');
 Route::get('/invoice/{id}', [ReservationController::class, 'downloadInvoice'])->name('invoice.download');
-Route::get('/trace/{id}', [ReservationController::class, 'traceOrder'])->name('trace.order');
+Route::view('/trace', 'user.trace')->name('trace');
+Route::get('/trace-order', function () {return view('user.trace-form');})->name('trace.order');
+Route::post('/trace-confirm',[ReservationController::class, 'traceOrder'])->name('trace.confirm');
+Route::get('/product', [ProductController::class, 'viewMenu']) ->name('menu');
 
 
 Route::get('/products/add', [ProductController::class, 'add'])->name('products.add');
@@ -45,3 +50,25 @@ Route::post('/products', [ProductController::class, 'store'])->name('createProdu
 Route::get('/login', [LoginAdminController::class, 'loginForm']);
 Route::post('/login', [LoginAdminController::class, 'login']);
 Route::get('/logout', [LoginAdminController::class, 'logout']);
+
+
+
+
+/// routeadmin
+
+Route::middleware(['auth', 'admin'])->group(function () {
+
+    Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users');
+
+    Route::get('/admin/users/create', [AdminUserController::class, 'create']);
+    Route::post('/admin/users/store', [AdminUserController::class, 'store']);
+
+    Route::get('/admin/users/edit/{id}', [AdminUserController::class, 'edit']);
+    Route::post('/admin/users/update/{id}', [AdminUserController::class, 'update']);
+
+    Route::delete('/admin/users/delete/{id}', [AdminUserController::class, 'destroy']);
+
+});
+
+
+
