@@ -53,18 +53,31 @@ class ReservationAdminController extends Controller
     ]);
 }
    
+  
+    
+
     public function updateStatusAjax(Request $request, $id)
 {
     $request->validate([
         'status' => 'required|in:pending,confirmed,in_preparation,served,completed,canceled'
     ]);
 
-    $order = Reservation::with('items.product')->findOrFail($id);
+    DB::transaction(function () use ($request, $id) {
 
+        $today = now()->toDateString();
 
-    if ($request->status == 'completed' && $order->status != 'completed') {
+        $order = Reservation::with('items.product')->lockForUpdate()->findOrFail($id);
 
-        DB::transaction(function () use ($order) {
+        // FIX ANTRIAN
+        if ($request->status == 'in_preparation') {
+
+            Reservation::whereDate('created_at', $today)
+                ->where('status', 'in_preparation')
+                ->update(['status' => 'pending']);
+        }
+
+        // HANDLE STOCK
+        if ($request->status == 'completed' && $order->status != 'completed') {
 
             foreach ($order->items as $item) {
 
@@ -72,32 +85,26 @@ class ReservationAdminController extends Controller
 
                 if (!$product) continue;
 
-   
                 if ($product->qty < $item->quantity) {
                     throw new \Exception("Stok {$product->name} tidak cukup");
                 }
 
-              
                 $product->decrement('qty', $item->quantity);
             }
+        }
 
-        });
-    }
-
-    // update status
-    $order->status = $request->status;
-    $order->save();
+        // UPDATE STATUS
+        $order->update([
+            'status' => $request->status
+        ]);
+    });
 
     return response()->json([
         'success' => true,
         'message' => 'Status berhasil diupdate',
-        'status' => $order->status
+        'status' => $request->status
     ]);
 }
-
-    // =========================
-    // DASHBOARD / REPORT
-    // =========================
     public function report(Request $request)
 {
     $month = $request->month;

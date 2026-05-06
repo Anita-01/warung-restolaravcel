@@ -54,12 +54,13 @@
                    required>
         </div>
 
+        {{-- 🔥 FIX IMAGE --}}
         <div class="mb-3">
             <label>Foto Product</label>
 
-            @if($product->photo)
+            @if($product->image)
                 <div class="mb-2">
-                    <img src="{{ asset('storage/' . $product->photo) }}"
+                    <img src="{{ asset('storage/' . $product->image) }}"
                          width="120"
                          height="120"
                          style="object-fit: cover; border-radius: 8px;">
@@ -69,7 +70,7 @@
             @endif
 
             <input type="file" 
-                   name="photo" 
+                   name="image" 
                    class="form-control">
 
             <small class="text-muted">

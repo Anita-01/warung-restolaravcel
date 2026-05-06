@@ -3,29 +3,27 @@
 @section('content')
 <div class="container mt-4">
 
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-bold">Daftar Reservasi</h5>
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Daftar Reservasi</h5>
         </div>
 
-       
+        {{-- SEARCH --}}
         <div class="p-3">
             <input type="text" id="search" class="form-control" placeholder="Search nama / invoice...">
         </div>
 
-        
-        <div id="infoData" class="px-3 pb-2 text-muted small">
-            Menampilkan {{ $reservations->firstItem() ?? 0 }} - {{ $reservations->lastItem() ?? 0 }} 
-            dari {{ $reservations->total() }} data
+        {{-- INFO --}}
+        <div id="infoData" class="px-3 text-muted small">
+            -
         </div>
 
         <div class="card-body p-0">
             <div class="table-responsive">
 
-             
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr class="text-muted small text-uppercase">
+                <table class="table table-bordered mb-0">
+                    <thead class="table-light">
+                        <tr>
                             <th>No</th>
                             <th>Tanggal</th>
                             <th>Nama</th>
@@ -36,9 +34,9 @@
                     </thead>
 
                     <tbody id="tableBody"></tbody>
+
                 </table>
 
-             
                 <div id="pagination" class="p-3"></div>
 
                 <div class="m-3">
@@ -53,10 +51,7 @@
 
 </div>
 
-<!-- CSRF -->
 <meta name="csrf-token" content="{{ csrf_token() }}">
-
-<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
@@ -64,7 +59,6 @@ $(document).ready(function(){
 
     let timer;
 
-  
     function loadData(page = 1, key = '') {
 
         $.ajax({
@@ -77,11 +71,7 @@ $(document).ready(function(){
                 let rows = '';
 
                 if(res.data.length === 0){
-                    rows = `<tr>
-                                <td colspan="6" class="text-center">
-                                    Data tidak ditemukan
-                                </td>
-                            </tr>`;
+                    rows = `<tr><td colspan="6" class="text-center">Data tidak ditemukan</td></tr>`;
                 } else {
 
                     res.data.forEach(function(r, index){
@@ -113,11 +103,10 @@ $(document).ready(function(){
                             <td>${r.invoice}</td>
 
                             <td class="text-center">
-                                <div class="mb-2">
-                                    <span id="badge-${r.id}" class="badge ${color[r.status] || 'bg-secondary'}">
-                                        ${statusText}
-                                    </span>
-                                </div>
+
+                                <span id="badge-${r.id}" class="badge ${color[r.status]} mb-2">
+                                    ${statusText}
+                                </span>
 
                                 <select class="form-select form-select-sm status-dropdown"
                                         data-id="${r.id}"
@@ -132,7 +121,7 @@ $(document).ready(function(){
 
                             <td>
                                 <a href="/admin/orders/${r.id}" class="btn btn-outline-warning btn-sm">
-                                   Detail
+                                    Detail
                                 </a>
                             </td>
                         </tr>
@@ -142,24 +131,19 @@ $(document).ready(function(){
 
                 $('#tableBody').html(rows);
 
-            
                 $('#infoData').html(
                     `Menampilkan ${res.from ?? 0} - ${res.to ?? 0} dari ${res.total} data`
                 );
 
-         
                 $('#pagination').html(res.links);
-                $('#pagination .pagination').addClass('justify-content-center');
             }
         });
     }
 
-
     loadData();
 
-  
+    // SEARCH
     $('#search').on('keyup', function(){
-
         clearTimeout(timer);
 
         let key = $(this).val();
@@ -169,24 +153,30 @@ $(document).ready(function(){
         }, 300);
     });
 
-  
+    // PAGINATION
     $(document).on('click', '#pagination a', function(e){
         e.preventDefault();
 
         let url = $(this).attr('href');
-        if(!url) return;
-
         let page = url.split('page=')[1];
         let key = $('#search').val();
 
         loadData(page, key);
     });
 
-  
+    // UPDATE STATUS
     $(document).on('change', '.status-dropdown', function(){
 
         let id = $(this).data('id');
         let status = $(this).val();
+
+        // CONFIRM KHUSUS IN PREPARATION
+        if(status === 'in_preparation'){
+            if(!confirm('Yakin ingin memproses antrian ini? Antrian lain akan di-reset!')){
+                loadData();
+                return;
+            }
+        }
 
         $.ajax({
             url: "/admin/orders/" + id + "/status",
@@ -197,22 +187,7 @@ $(document).ready(function(){
             data: { status: status },
 
             success: function(){
-
-                let badge = $('#badge-' + id);
-
-                let color = {
-                    'pending': 'bg-warning text-dark',
-                    'confirmed': 'bg-success',
-                    'in_preparation': 'bg-primary',
-                    'served': 'bg-info',
-                    'completed': 'bg-dark',
-                    'canceled': 'bg-danger'
-                };
-
-                badge.removeClass().addClass('badge ' + color[status]);
-
-                let text = status.replace('_',' ');
-                badge.text(text.charAt(0).toUpperCase() + text.slice(1));
+                loadData(); 
             }
         });
 

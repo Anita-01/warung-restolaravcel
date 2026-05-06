@@ -6,10 +6,13 @@
     <h2 class="mb-4">Detail Order</h2>
 
     <!-- INFO ANTRIAN -->
-    <div class="g-dark text-white">
-        <h5>Nomor Antrian: {{ $reservation->queue_number }}</h5>
-        <h5>Estimasi: {{ $reservation->queue_number * 5 }} menit</h5>
-        <h5>Invoice: {{ $reservation->invoice }} </h5>
+    <div class="bg-dark text-white p-3 rounded mb-4">
+        <h5>Nomor Antrian: 
+            A{{ str_pad($reservation->queue_number, 3, '0', STR_PAD_LEFT) }}
+        </h5>
+        <h5>Estimasi Awal: {{ $reservation->queue_number * 5 }} menit</h5>
+        <h5>Invoice: {{ $reservation->invoice }}</h5>
+        <h5>Status: {{ $reservation->status }}</h5>
     </div>
 
     <!-- REALTIME -->
@@ -52,30 +55,60 @@
             </tr>
         </tfoot>
     </table>
+
     <a href="{{ route('invoice.download', $reservation->id) }}" 
-   class="btn btn-success mt-3">
-   Download Invoice PDF
-</a>
-<div class="m-3">
-                    <a href="{{ route('index') }}" class="btn btn-secondary">
-                        ← Kembali
-                    </a>
-                </div>
+       class="btn btn-success mt-3">
+       Download Invoice PDF
+    </a>
+
+    <div class="m-3">
+        <a href="{{ route('index') }}" class="btn btn-secondary">
+            ← Kembali
+        </a>
+    </div>
 </div>
+@endsection
+
 @section('scripts')
 <script>
+const userQueue = {{ $reservation->queue_number }};
+
+function formatQueue(num) {
+    return 'A' + String(num).padStart(3, '0');
+}
+
 function loadQueueData() {
     fetch('/queue-data')
         .then(res => res.json())
         .then(data => {
-            document.getElementById('currentQueue').innerText = data.current_queue;
-            document.getElementById('totalWaiting').innerText = data.total_waiting;
-            document.getElementById('waitingTime').innerText = (data.total_waiting * 5) + " menit";
+
+            let current = data.current_queue || 0;
+
+            // tampilkan current queue
+            document.getElementById('currentQueue').innerText =
+                current ? formatQueue(current) : '-';
+
+            // jumlah menunggu
+            document.getElementById('totalWaiting').innerText =
+                data.total_waiting;
+
+            // hitung estimasi REAL
+            let remaining = userQueue - current;
+
+            let estimate = remaining > 0 ? remaining * 5 : 0;
+
+            document.getElementById('waitingTime').innerText =
+                estimate + " menit";
+        })
+        .catch(err => {
+            console.error('Error ambil queue:', err);
         });
 }
 
+// load pertama
 loadQueueData();
+
+// refresh tiap 5 detik
 setInterval(loadQueueData, 5000);
 </script>
-@endsection
 @endsection

@@ -127,29 +127,58 @@ class ReservationController extends Controller
             ])->withInput();
         }
     }
-
     public function queueData()
-    {
-        $today = now()->toDateString();
+{
+    $today = now()->toDateString();
 
-        $current = Reservation::whereDate('created_at', $today)
-            ->where('status', 'waiting')
-            ->orderBy('queue_number')
-            ->first();
 
-        $totalWaiting = Reservation::whereDate('created_at', $today)
-            ->where('status', 'waiting')
-            ->count();
+    $current = Reservation::whereDate('created_at', $today)
+        ->where('status', 'in_preparation')
+        ->orderBy('id') // lebih aman dari queue_number
+        ->first();
 
-        return response()->json([
-            'current_queue' => $current
-                ? 'A' . str_pad($current->queue_number, 3, '0', STR_PAD_LEFT)
-                : '-',
-            'total_waiting' => $totalWaiting,
-        ]);
+
+    $totalWaiting = Reservation::whereDate('created_at', $today)
+        ->whereIn('status', ['pending', 'confirmed'])
+        ->count();
+
+    return response()->json([
+       
+        'current_queue' => $current
+    ? (
+        str_starts_with((string)$current->queue_number, 'A')
+        ? $current->queue_number
+        : 'A' . str_pad((int)$current->queue_number, 3, '0', STR_PAD_LEFT)
+    )
+    : '-',
+
+        'total_waiting' => $totalWaiting,
+
+        'estimate' => $totalWaiting * 5
+    ]);
+}
+
+public function nextQueue()
+{
+    
+    $current = Reservation::where('status', 'in_preparation')->first();
+    if ($current) {
+        $current->update(['status' => 'served']);
     }
 
-    public function detailReservation($id)
+   
+    $next = Reservation::whereIn('status', ['pending', 'confirmed'])
+        ->orderBy('queue_number')
+        ->first();
+
+    if ($next) {
+        $next->update(['status' => 'in_preparation']);
+    }
+
+    return response()->json(['success' => true]);
+}
+
+        public function detailReservation($id)
     {
         $reservation = Reservation::with('items.product')
             ->findOrFail($id);

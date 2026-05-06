@@ -29,6 +29,13 @@ class CategorySeeder extends Seeder
             'icon' => 'fa-moon',
             'subtitle' => 'Recommended'
         ],
+         [
+            'name' => 'Snack',
+            'icon' => 'fa-moon',
+            'subtitle' => 'Recommended'
+        ],
+
+
     ];
 
     foreach ($categories as $category) {

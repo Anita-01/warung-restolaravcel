@@ -19,7 +19,7 @@
                     <span class="badge bg-warning">Pending</span>
                 @elseif($order->status == 'confirmed')
                     <span class="badge bg-success">Confirmed</span>
-                @elseif($order->status == 'in preparation')
+                @elseif($order->status == 'in_preparation')
                     <span class="badge bg-primary">Preparation</span>
                 @elseif($order->status == 'served')
                     <span class="badge bg-info">Served</span>

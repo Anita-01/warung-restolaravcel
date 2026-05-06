@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -12,7 +13,7 @@ class ProductController extends Controller
    
     public function index()
     {
-         $products = Product::with('category')->paginate(5); 
+        $products = Product::latest()->paginate(10);
 
     return view('admin.CRUDMenu.viewmenuindex', compact('products'));
     }
@@ -32,14 +33,13 @@ public function store(Request $request)
         'category_id' => 'required',
         'qty' => 'required',
         'price' => 'required',
-        'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
     ]);
 
-    $photoPath = null;
+    $imagePath = null;
 
-    if($request->hasFile('photo')){
-
-        $photoPath = $request->file('photo')
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')
             ->store('products', 'public');
     }
 
@@ -48,14 +48,13 @@ public function store(Request $request)
         'category_id' => $request->category_id,
         'qty' => $request->qty,
         'price' => $request->price,
-        'photo' => $photoPath
+        'image' => $imagePath
     ]);
 
     return redirect()
         ->route('products.index')
         ->with('success', 'Product berhasil ditambahkan');
 }
-
   
     public function edit($id)
     {
@@ -73,7 +72,7 @@ public function updateProduct(Request $request)
         'category_id' => 'required',
         'qty' => 'required',
         'price' => 'required',
-        'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
     ]);
 
     $product = Product::findOrFail($request->id);
@@ -85,8 +84,16 @@ public function updateProduct(Request $request)
         'price' => $request->price,
     ];
 
-    if ($request->hasFile('photo')) {
-        $data['photo'] = $request->file('photo')->store('products', 'public');
+
+    if ($request->hasFile('image')) {
+
+       
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
+        }
+
+        
+        $data['image'] = $request->file('image')->store('products', 'public');
     }
 
     $product->update($data);
@@ -95,24 +102,27 @@ public function updateProduct(Request $request)
         ->route('products.index')
         ->with('success', 'Data product berhasil diupdate');
 }
-
     public function search(Request $request)
-    {
-        $key = $request->key;
+{
+    $key = $request->key;
 
-         $products = Product::with('category')
-        ->where('name', 'like', '%' . $request->key . '%')
-        ->paginate(5);
+    $query = Product::with('category')
+        ->latest(); 
+
+    if ($key) {
+        $query->where('name', 'like', '%' . $key . '%');
+    }
+
+    $products = $query->paginate(10);
 
     return response()->json([
-    'data' => $products->items(),
+        'data' => $products->items(),
         'from' => $products->firstItem(),
         'to' => $products->lastItem(),
         'total' => $products->total(),
-        'links' => (string) $products->links()
-
+        'links' => $products->links()->render()
     ]);
-    }
+}
 
     
     public function destroy($id)
