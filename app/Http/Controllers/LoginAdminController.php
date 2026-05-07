@@ -12,21 +12,28 @@ class LoginAdminController extends Controller
         return view('admin.loginadmin');
     }
 
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'name' => 'required',
-            'password' => 'required',
-        ]);
+public function login(Request $request)
+{
+    $request->validate([
+        'login' => 'required',
+        'password' => 'required',
+    ]);
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+    $field = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
 
-            return redirect()->route('dashboardadmin');
-        }
+    $credentials = [
+        $field => $request->login,
+        'password' => $request->password,
+    ];
 
-        return back()->with('error', 'Name atau password salah');
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+
+        return redirect()->route('dashboardadmin');
     }
+
+    return back()->with('error', 'Name/email atau password salah');
+}
 
     public function logout(Request $request)
     {

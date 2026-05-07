@@ -1,29 +1,62 @@
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+@extends('layouts.Hmm')
 
+@section('main')
+    <!-- Login Start -->
+    <div class="container-xxl py-5">
+        <div class="container">
 
-<form method="POST" action="/login">
-    @csrf
+            {{-- Judul --}}
+            <div class="text-center wow fadeInUp mb-4" data-wow-delay="0.1s">
+                <h5 class="section-title ff-secondary text-center text-primary fw-normal">Selamat Datang</h5>
+                <h1>Login Admin</h1>
+            </div>
 
-<form class="p-4">
-  <div class="mb-3">
-    <label>Username</label>
-    <input type="text" name="name" class="form-control" placeholder="email@example.com">
-  </div>
+            {{-- Card Form --}}
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-7 wow fadeInUp" data-wow-delay="0.2s">
+                    <div class="service-item rounded p-5">
 
-  <div class="mb-3">
-    <label>Password</label>
-    <input type="password" name="password" class="form-control" placeholder="Password">
-  </div>
+                        {{-- Pesan error --}}
+                        @if(session('error'))
+                            <div class="alert alert-danger rounded mb-4">
+                                <i class="fa fa-exclamation-circle me-2"></i>{{ session('error') }}
+                            </div>
+                        @endif
 
-  <div class="form-check mb-3">
-    <input type="checkbox" class="form-check-input">
-    <label class="form-check-label">Remember me</label>
-  </div>
+                        <form method="POST" action="/login">
+                            @csrf
 
-  <button type="submit" class="btn btn-primary w-100">
-    Sign in
-  </button>
-  @if(session('error'))
-        <p>{{ session('error') }}</p>
-    @endif
-</form>
+                            <div class="mb-3">
+                                <label class="fw-bold mb-1">Username</label>
+                                <input type="text" name="login" class="form-control border-primary py-2" placeholder="Username atau Email">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="fw-bold mb-1">Password</label>
+                                <input type="password" name="password" class="form-control border-primary py-2" placeholder="Password">
+                            </div>
+
+                            <div class="form-check mb-4">
+                                <input type="checkbox" class="form-check-input">
+                                <label class="form-check-label">Remember me</label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2">
+                                <i class="fa fa-sign-in-alt me-2"></i>Sign in
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <a href="/" class="text-primary text-decoration-none">
+                                <i class="fa fa-arrow-left me-1"></i>Kembali ke halaman utama
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- Login End -->
+@endsection
