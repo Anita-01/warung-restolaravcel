@@ -47,85 +47,41 @@
 
                 <ul class="nav flex-column mb-2">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">
+                        <a class="nav-link active" href="{{ route('admin.dashboardadmin') }}">
                             <i class="bi bi-house me-2"></i> Dashboard
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.orders.index') }}">
+                        <a class="nav-link" href="{{ route('admin.admin.orders.index') }}">
                             <i class="bi bi-file-earmark me-2"></i> Orders
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('products.index') }}">
+                        <a class="nav-link" href="{{ route('admin.products.view') }}">
                             <i class="bi bi-cart me-2"></i> Products
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-people me-2"></i> Customers
+                        <a class="nav-link" href="{{ route('admin.users.index') }}">
+                            <i class="bi bi-people me-2"></i> Data Admin
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link"  href="{{ route('admin.admin.report') }}">
                             <i class="bi bi-graph-up me-2"></i> Reports
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-puzzle me-2"></i> Integrations
-                        </a>
-                    </li>
-                </ul>
-
-                <h6 class="text-muted px-3 mt-4 mb-1">SAVED REPORTS</h6>
-
-                <ul class="nav flex-column mb-2">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-file-earmark-text me-2"></i> Current month
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-file-earmark-text me-2"></i> Last quarter
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-file-earmark-text me-2"></i> Social engagement
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-file-earmark-text me-2"></i> Year-end sale
-                        </a>
-                    </li>
-                </ul>
-
-                <hr>
-
-                <ul class="nav flex-column mb-2">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-gear me-2"></i> Settings
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="{{ route('home') }}">
+               <li class="nav-item">
+                        <a class="nav-link text-danger" href="{{ route('logout') }}">
                             <i class="bi bi-box-arrow-right me-2"></i> Sign out
                         </a>
                     </li>
-                </ul>
+                </ul> 
 
             </div>
         </nav>

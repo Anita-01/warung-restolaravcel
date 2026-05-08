@@ -2,97 +2,136 @@
 
 @section('content')
 <div class="container mt-4">
-    <h1>Orders</h1>
 
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Daftar Reservasi</h5>
         </div>
-    @endif
 
-    <table class="table table-bordered table-striped mt-3">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nama</th>
-                <th>Email</th>
-                <th>Waktu Booking</th>
-                <th>Pesanan</th>
-                <th>Jumlah</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>Aksi Admin</th>
-            </tr>
-        </thead>
+        <div class="card-body p-0">
+            <div class="table-responsive">
 
-        <tbody>
-    @forelse($orders as $order)
-        <tr>
-            <td>{{ $loop->iteration }}</td>
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="text-muted small text-uppercase">
+                            <th>No</th>
+                            <th>Tanggal</th>
+                            <th>Nama</th>
+                            <th>Invoice</th>
+                            <th class="text-center">Status</th>
+                            <th>Detail</th>
+                        </tr>
+                    </thead>
 
-            <td>{{ $order->name }}</td>
+                    <tbody>
+                        @foreach($reservations as $key => $r)
+                        <tr>
 
-            <td>{{ $order->email }}</td>
+                            <td>{{ $key + 1 }}</td>
 
-            <td>{{ $order->reservation_date }}</td>
+                            <td>
+                                {{ \Carbon\Carbon::parse($r->reservation_date)->format('d M Y') }}
+                            </td>
 
-            <td>
-                @foreach($order->items as $item)
-                    <div>
-                        {{ $item->product->name ?? 'Produk dihapus' }}
-                        x {{ $item->quantity }}
-                    </div>
-                @endforeach
-            </td>
+                            <td>{{ $r->name }}</td>
 
-            <td>{{ $order->items->sum('quantity') }}</td>
+                            <td>{{ $r->invoice }}</td>
 
-            <td>Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+                            <td class="text-center">
 
-            <td>
-                @if($order->status == 'waiting')
-                    <span class="badge bg-warning">Waiting</span>
-                @elseif($order->status == 'confirmed')
-                    <span class="badge bg-success">Confirmed</span>
-                @elseif($order->status == 'done')
-                    <span class="badge bg-primary">Done</span>
-                @elseif($order->status == 'cancelled')
-                    <span class="badge bg-danger">Cancelled</span>
-                @endif
-            </td>
+                                @php
+                                    $badgeClass = [
+                                        'pending' => 'bg-warning text-dark',
+                                        'confirmed' => 'bg-success',
+                                        'in preparation' => 'bg-primary',
+                                        'served' => 'bg-info',
+                                        'completed' => 'bg-dark',
+                                        'canceled' => 'bg-danger'
+                                    ][$r->status] ?? 'bg-secondary';
+                                @endphp
 
-            <td>
-                @if($order->status == 'waiting')
-                    <form action="{{ route('admin.orders.confirm', $order->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('PUT')
-                        <button class="btn btn-success btn-sm">Confirm</button>
-                    </form>
+                                <!-- BADGE -->
+                                <div class="mb-2">
+                                    <span id="badge-{{ $r->id }}" class="badge {{ $badgeClass }}">
+                                        {{ ucfirst($r->status) }}
+                                    </span>
+                                </div>
 
-                    <form action="{{ route('admin.orders.cancel', $order->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('PUT')
-                        <button class="btn btn-danger btn-sm">Cancel</button>
-                    </form>
+                                <!-- DROPDOWN AJAX -->
+                                <select class="form-select form-select-sm status-dropdown"
+                                        data-id="{{ $r->id }}"
+                                        style="width: 150px; margin:auto;">
+                                        
+                                    @foreach(['pending','confirmed','in preparation','served','completed','canceled'] as $status)
+                                        <option value="{{ $status }}"
+                                            {{ $r->status == $status ? 'selected' : '' }}>
+                                            {{ ucfirst($status) }}
+                                        </option>
+                                    @endforeach
 
-                @elseif($order->status == 'confirmed')
-                    <form action="{{ route('admin.orders.done', $order->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('PUT')
-                        <button class="btn btn-primary btn-sm">Done</button>
-                    </form>
+                                </select>
 
-                @else
-                    <span class="text-muted">Sudah diproses</span>
-                @endif
-            </td>
-        </tr>
-    @empty
-        <tr>
-            <td colspan="9" class="text-center">Belum ada pesanan.</td>
-        </tr>
-    @endforelse
-</tbody>
-    </table>
+                            </td>
+
+                            <td>
+                                <a href="{{ route('admin.orders.detail', $r->id) }}"
+                                   class="btn btn-outline-warning btn-sm">
+                                   Detail
+                                </a>
+                            </td>
+
+                        </tr>
+                        @endforeach
+                    </tbody>
+
+                </table>
+                   <div class="mt-3">
+                <a href="{{ route('admin.dashboardadmin') }}" class="btn btn-secondary">
+                    ← Kembali
+                </a>
+
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<!-- AJAX SCRIPT -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+$('.status-dropdown').change(function(){
+
+    let id = $(this).data('id');
+    let status = $(this).val();
+
+    $.ajax({
+        url: "/admin/orders/" + id + "/status",
+        method: "POST",
+        data: {
+            _token: "{{ csrf_token() }}",
+            status: status
+        },
+        success: function(res){
+
+            let badge = $('#badge-' + id);
+
+            let color = {
+                'pending': 'bg-warning text-dark',
+                'confirmed': 'bg-success',
+                'in preparation': 'bg-primary',
+                'served': 'bg-info',
+                'completed': 'bg-dark',
+                'canceled': 'bg-danger'
+            };
+
+            badge.removeClass().addClass('badge ' + color[status]);
+            badge.text(status.charAt(0).toUpperCase() + status.slice(1));
+
+        }
+    });
+
+});
+</script>
+
 @endsection

@@ -9,6 +9,7 @@ class Reservation extends Model
 {
 
 protected $fillable = [
+    'invoice',
     'name',
     'email',
     'reservation_date',
@@ -21,7 +22,7 @@ protected $fillable = [
 
        public function items()
     {
-        return $this->hasMany(ReservationItem::class);
+        return $this->hasMany(ReservationItem::class, 'reservation_id');
     }
 
 }

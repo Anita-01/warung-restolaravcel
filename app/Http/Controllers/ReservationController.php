@@ -8,6 +8,8 @@ use App\Models\Product;
 use App\Models\ReservationItem;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
+
 
 class ReservationController extends Controller
 {
@@ -42,12 +44,13 @@ class ReservationController extends Controller
 
          
             $reservation = Reservation::create([
+                'invoice'         => $this->generateInvoice(),
                 'name'             => $request->name,
                 'email'            => $request->email,
                 'reservation_date' => $request->date,
                 'total_price'      => 0, 
                 'queue_number'     => $nextQueue,
-                'status'           => 'waiting'
+                'status'           => 'pending'
             ]);
 
             $total = 0;
@@ -117,32 +120,80 @@ public function downloadInvoice($id)
 
     return $pdf->download('invoice-'.$reservation->id.'.pdf');
 }
-public function traceOrder($id)
-    {
-$reservation = Reservation::with('items.product')->find($id);
-
-if (!$reservation) {
-        return view('trace', [
-            'message' => 'Data tidak ditemukan',
-            'reservation' => null
-        ]);
-    }
-    return view('user.traceorder', compact('reservation'));
-}
-
-public function traceConfirm(Request $request)
+public function traceOrder(Request $request)
 {
     $request->validate([
-        'reservation_id' => 'required|integer',
+        'antrian' => 'required',
+        'phone' => 'required|email'
     ]);
 
-    $reservation = Reservation::find($request->reservation_id);
+    $reservation = Reservation::with('items.product')
+        ->where('invoice', $request->antrian)
+        ->where('email', $request->phone)
+        ->first();
 
     if (!$reservation) {
-        return back()->with('error', 'Data reservasi tidak ditemukan');
+
+        return back()->with([
+            'error' => 'Data reservation tidak ditemukan'
+        ]);
     }
 
-    return redirect()->route('trace.order', $reservation->id);
+    return view('user.trace-order', compact('reservation'));
 }
+
+private function generateInvoice()
+{
+   $date = now()->format('Ymd');
+
+    $count = Reservation::whereDate('created_at', now())->count();
+    
+    do {
+        $count++;
+        $invoice = 'INV-' . now()->format('YmdHis') . '-' . rand(100,999);
+    } while (Reservation::where('invoice', $invoice)->exists());
+
+    return $invoice;
+}
+
+
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required',
+        'email' => 'required|email',
+        'date' => 'required',
+    ]);
+
+    // nomor antrian
+    $lastQueue = Reservation::max('queue_number');
+
+    $queueNumber = $lastQueue ? $lastQueue + 1 : 1;
+
+  
+    $invoice = 'INV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
+     
+    $reservation = Reservation::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'reservation_date' => $request->date,
+        'total_price' => $request->total_price,
+        'queue_number' => $queueNumber,
+
+        
+        'invoice' => $invoice,
+
+        'status' => 'pending',
+    ]);
+
+    return redirect()->route('reservation.detail');
+
+}
+
+
+
+
+
+
 
 }

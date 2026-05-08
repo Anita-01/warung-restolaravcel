@@ -5,10 +5,10 @@
 
     <h3 class="mb-3">List Products</h3>
 
-    
+    <!-- SEARCH -->
     <input type="text" id="search" class="form-control mb-3" placeholder="Search product...">
 
-    {{-- TABLE --}}
+    <!-- TABLE -->
     <table class="table table-bordered table-hover">
         <thead class="table-dark text-center">
             <tr>
@@ -26,29 +26,33 @@
             <tr>
                 <td>{{ $loop->iteration }}</td>
                 <td>{{ $p->name }}</td>
-        <td>
-   {{ $p->category->name ?? 'Tanpa Kategori' }}
-</td>
+                <td>{{ $p->category->name ?? 'Tanpa Kategori' }}</td>
                 <td>{{ $p->qty }}</td>
                 <td>Rp {{ number_format($p->price,0,',','.') }}</td>
-                <td>
-                    <a href="{{ route('editmenu', $p->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                <td class="text-center">
 
+                    <!-- EDIT -->
+                    <a href="{{ route('admin.products.edit', $p->id) }}" class="btn btn-warning btn-sm">
+                        Edit
+                    </a>
+
+                    <!-- DELETE (AJAX) -->
                     <button class="btn btn-danger btn-sm btn-delete"
                         data-id="{{ $p->id }}">
                         Delete
                     </button>
-                </td>
-                
 
+                </td>
             </tr>
             @endforeach
         </tbody>
     </table>
 
-</div>
-<div>
-     <a href="{{ route('products.add') }}" class="btn btn-outline-primary">Add Menu</a>
+    <!-- ADD BUTTON -->
+    <a href="{{ route('admin.products.add') }}" class="btn btn-primary mt-3">
+        + Add Menu
+    </a>
+
 </div>
 @endsection
 
@@ -60,7 +64,9 @@
 <script>
 let timer;
 
+// ============================
 // 🔍 SEARCH AJAX
+// ============================
 $('#search').on('keyup', function(){
 
     clearTimeout(timer);
@@ -87,9 +93,11 @@ $('#search').on('keyup', function(){
                             <td>${p.name}</td>
                             <td>${p.category ? p.category.name : 'Tanpa Kategori'}</td>
                             <td>${p.qty}</td>
-                            <td>Rp ${Number(p.price || 0).toLocaleString()}</td>
-                            <td>
-                                <a href="/editmenu/${p.id}" class="btn btn-warning btn-sm">Edit</a>
+                            <td>Rp ${Number(p.price).toLocaleString()}</td>
+                            <td class="text-center">
+                                <a href="/admin/products/edit/${p.id}" class="btn btn-warning btn-sm">
+                                    Edit
+                                </a>
 
                                 <button class="btn btn-danger btn-sm btn-delete"
                                     data-id="${p.id}">
@@ -106,9 +114,12 @@ $('#search').on('keyup', function(){
         });
 
     }, 300);
-
 });
 
+
+// ============================
+// 🗑 DELETE AJAX + SWEETALERT
+// ============================
 $(document).on('click', '.btn-delete', function(){
 
     let id = $(this).data('id');
@@ -126,7 +137,7 @@ $(document).on('click', '.btn-delete', function(){
         if (result.isConfirmed) {
 
             $.ajax({
-                url: "/products/" + id,
+                url: "/admin/products/" + id,
                 method: "POST",
                 data: {
                     _token: '{{ csrf_token() }}',
@@ -134,8 +145,17 @@ $(document).on('click', '.btn-delete', function(){
                 },
 
                 success: function(res){
-                    Swal.fire('Berhasil!', res.message, 'success');
-                    location.reload();
+
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        text: res.message,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    // REMOVE ROW TANPA RELOAD
+                    $('button[data-id="'+id+'"]').closest('tr').remove();
                 }
             });
 

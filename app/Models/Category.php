@@ -19,4 +19,13 @@ public function products()
     return $this->hasMany(Product::class, 'category_id');
 }
 
+
+public function edit($id)
+{
+    $product = Product::findOrFail($id);
+    $categories = Category::all();
+
+    return view('admin.CRUDMenu.editmenu', compact('product', 'categories'));
+}
+
 }

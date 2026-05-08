@@ -9,6 +9,7 @@
     <div class="g-dark text-white">
         <h5>Nomor Antrian: {{ $reservation->queue_number }}</h5>
         <h5>Estimasi: {{ $reservation->queue_number * 5 }} menit</h5>
+        <h5>Invoice: {{ $reservation->invoice }} </h5>
     </div>
 
     <!-- REALTIME -->

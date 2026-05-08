@@ -20,10 +20,14 @@ class LoginAdminController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+           $request->session()->regenerate();
 
-            return redirect()->route('dashboardadmin');
-        }
+    if (Auth::user()->role == 'admin') {
+        return redirect()->route('admin.dashboardadmin');
+    }
+
+    return redirect()->route('index');
+}
 
         return back()->with('error', 'Name atau password salah');
     }
@@ -35,7 +39,7 @@ class LoginAdminController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')
+        return redirect()->route('index')
             ->with('success', 'Berhasil logout');
     }
 }
