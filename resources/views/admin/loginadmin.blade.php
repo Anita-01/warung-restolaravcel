@@ -1,4 +1,4 @@
-@extends('layouts.Hmm')
+@extends('layouts.hmm')
 
 @section('main')
     <!-- Login Start -->
@@ -28,7 +28,7 @@
 
                             <div class="mb-3">
                                 <label class="fw-bold mb-1">Username</label>
-                                <input type="text" name="login" class="form-control border-primary py-2" placeholder="Username atau Email">
+                                <input type="text" name="name" class="form-control border-primary py-2" placeholder="email@example.com">
                             </div>
 
                             <div class="mb-3">

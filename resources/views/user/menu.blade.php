@@ -1,67 +1,110 @@
-@extends('layouts.Hmm')
+@extends('layouts.app')
 
-@section('nav-menu', 'active')
+@section('content')
 
-@section('hero')
-    <div class="container-xxl py-5 bg-dark hero-header mb-5">
-        <div class="container my-5 py-5">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-6 text-center text-lg-start">
-                    <h1 class="display-3 text-white animated slideInLeft">Menu Kami</h1>
-                    <p class="text-white animated slideInLeft mb-4 pb-2">Temukan pilihan makanan lezat dari Warung Muslim Lia. Semua dimasak dengan bahan segar dan penuh cita rasa.</p>
-                </div>
-                <div class="col-lg-6 text-center text-lg-end overflow-hidden">
-                    <img class="img-fluid" src="img/hero.png" alt="">
-                </div>
-            </div>
-        </div>
+<div class="container py-5">
+
+    {{-- HEADER --}}
+    <div class="text-center mx-auto mb-5" style="max-width: 500px;">
+        <h1 class="display-5 mb-3">Menu Kami</h1>
+
+        <p class="text-muted">
+            Pilihan makanan terbaik dengan cita rasa khas dan bahan berkualitas.
+        </p>
     </div>
-@endsection
 
-@section('main')
-    <!-- Menu Start -->
-    <div class="container-xxl py-5">
-        <div class="container">
-            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
-                <h5 class="section-title ff-secondary text-center text-primary fw-normal">Pilihan Menu</h5>
-                <h1 class="mb-5">Menu Makanan & Minuman</h1>
-            </div>
+    {{-- PRODUCT --}}
+    <div class="row g-4">
+        @foreach($products as $product)
+            <div class="col-xl-3 col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                <div class="product-item border rounded shadow-sm h-100">
 
-            {{-- isi tidak diubah --}}
-            <div class="row g-4">
-                @forelse($products as $p)
-                    <div class="col-lg-6">
-                        <div class="d-flex align-items-center">
+                    {{-- IMAGE --}}
+                    <div class="position-relative bg-light overflow-hidden">
+                        @if($product->photo)
+                            <img class="img-fluid w-100"
+                                 src="{{ asset('storage/' . $product->photo) }}"
+                                 alt="{{ $product->name }}"
+                                 style="height: 220px; object-fit: cover;">
+                        @else
+                            <img class="img-fluid w-100"
+                                 src="{{ asset('img/no-image.png') }}"
+                                 alt="No Image"
+                                 style="height: 220px; object-fit: cover;">
+                        @endif
 
-                            <img class="flex-shrink-0 img-fluid rounded"
-                                 src="{{ asset('img/' . $p->image) }}"
-                                 alt="{{ $p->name }}"
-                                 style="width: 80px; height: 80px; object-fit: cover;">
-
-                            <div class="w-100 d-flex flex-column text-start ps-4">
-                                <h5 class="d-flex justify-content-between border-bottom pb-2">
-                                    <span>{{ $p->name }}</span>
-                                    <span class="text-primary">
-                                        Rp {{ number_format($p->price, 0, ',', '.') }}
-                                    </span>
-                                </h5>
-
-                                <small class="fst-italic">
-                                    Kategori: {{ $p->category }} | Qty: {{ $p->qty }}
-                                </small>
-                            </div>
-
+                        {{-- BADGE --}}
+                        <div class="bg-secondary rounded text-white position-absolute start-0 top-0 m-3 py-1 px-3">
+                            New
                         </div>
                     </div>
-                @empty
-                @endforelse
-                <div class="col-12 text-center">
-                    <h3> Silahkan melakukan Reservation</h3>
-                    <a href="/" class="nav-item nav-link">Kembali ke halaman utama</a>
+
+                    {{-- PRODUCT INFO --}}
+                    <div class="text-center p-4">
+                        <h5 class="mb-2">
+                            {{ $product->name }}
+                        </h5>
+
+                        <p class="text-muted mb-2">
+                            {{ $product->category->name ?? 'Tanpa Kategori' }}
+                        </p>
+
+                        <span class="text-primary fw-bold me-2">
+                            Rp {{ number_format($product->price, 0, ',', '.') }}
+                        </span>
+
+                        <span class="text-body text-decoration-line-through">
+                            Rp {{ number_format($product->price + 5000, 0, ',', '.') }}
+                        </span>
+                    </div>
+
+                    {{-- ACTION BUTTON --}}
+                    <div class="d-flex border-top">
+                        <small class="w-50 text-center border-end py-2">
+                            <a class="text-body text-decoration-none" href="#">
+                                <i class="fa fa-eye text-primary me-2"></i>
+                                View Detail
+                            </a>
+                        </small>
+
+                        <small class="w-50 text-center py-2">
+                            <a class="text-body text-decoration-none" href="#">
+                                <i class="fa fa-shopping-bag text-primary me-2"></i>
+                                Add to Cart
+                            </a>
+                        </small>
+                    </div>
+
                 </div>
             </div>
-
-        </div>
+        @endforeach
     </div>
-    <!-- Menu End -->
+
+    {{-- BUTTON KEMBALI --}}
+    <div class="mt-5">
+        <a href="{{ route('index') }}" class="btn btn-back">
+            ← Kembali
+        </a>
+    </div>
+
+</div>
+
+{{-- STYLE --}}
+<style>
+    .btn-back {
+        background-color: #6c757d;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: 0.3s;
+        font-weight: 500;
+    }
+
+    .btn-back:hover {
+        background-color: red;
+        color: white;
+    }
+</style>
+
 @endsection

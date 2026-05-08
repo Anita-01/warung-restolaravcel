@@ -2,8 +2,17 @@
 
 @section('content')
 <div class="container mt-4">
+    
 
-    <h3 class="mb-3">List Products</h3>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+    <h3 class="mb-0">List Products</h3>
+
+    <a href="{{ route('dashboardadmin') }}" class="btn btn-back">
+        ← Kembali
+    </a>
+
+</div>
 
     
     <input type="text" id="search" class="form-control mb-3" placeholder="Search product...">
@@ -13,6 +22,7 @@
         <thead class="table-dark text-center">
             <tr>
                 <th>#</th>
+                <th>Foto</th>
                 <th>Nama</th>
                 <th>Kategori</th>
                 <th>Qty</th>
@@ -22,28 +32,42 @@
         </thead>
 
         <tbody id="tableBody">
-            @foreach($products as $p)
-            <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $p->name }}</td>
+    @foreach($products as $p)
+    <tr>
+        <td>{{ $loop->iteration }}</td>
+
+        <td class="text-center">
+            @if($p->photo)
+                <img src="{{ asset('storage/' . $p->photo) }}" 
+                     width="70" 
+                     height="70" 
+                     style="object-fit: cover; border-radius: 8px;">
+            @else
+                <span class="text-muted">Tidak ada foto</span>
+            @endif
+        </td>
+
+        <td>{{ $p->name }}</td>
+
         <td>
-   {{ $p->category->name ?? 'Tanpa Kategori' }}
-</td>
-                <td>{{ $p->qty }}</td>
-                <td>Rp {{ number_format($p->price,0,',','.') }}</td>
-                <td>
-                    <a href="{{ route('editmenu', $p->id) }}" class="btn btn-warning btn-sm">Edit</a>
+            {{ $p->category->name ?? 'Tanpa Kategori' }}
+        </td>
 
-                    <button class="btn btn-danger btn-sm btn-delete"
-                        data-id="{{ $p->id }}">
-                        Delete
-                    </button>
-                </td>
-                
+        <td>{{ $p->qty }}</td>
 
-            </tr>
-            @endforeach
-        </tbody>
+        <td>Rp {{ number_format($p->price,0,',','.') }}</td>
+
+        <td>
+            <a href="{{ route('editmenu', $p->id) }}" class="btn btn-warning btn-sm">Edit</a>
+
+            <button class="btn btn-danger btn-sm btn-delete"
+                data-id="{{ $p->id }}">
+                Delete
+            </button>
+        </td>
+    </tr>
+    @endforeach
+</tbody>
     </table>
 
 </div>
@@ -78,7 +102,7 @@ $('#search').on('keyup', function(){
                 let rows = '';
 
                 if(data.length === 0){
-                    rows = `<tr><td colspan="6" class="text-center">Data tidak ditemukan</td></tr>`;
+                    rows = `<tr><td colspan="7" class="text-center">Data tidak ditemukan</td></tr>`;
                 } else {
                     data.forEach(function(p, index){
                         rows += `

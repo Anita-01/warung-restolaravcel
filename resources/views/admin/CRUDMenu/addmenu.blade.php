@@ -5,7 +5,12 @@
 
     <h3>Tambah Product</h3>
 
-    <form action="{{ route('createProducts') }}" method="POST">
+    <form action="{{ route('createProducts') }}" 
+      method="POST" 
+      enctype="multipart/form-data">
+      
+      method="POST" 
+      enctype="multipart/form-data">
         @csrf
 
         <div class="mb-3">
@@ -36,6 +41,17 @@
             <label>Price</label>
             <input type="number" name="price" class="form-control" required>
         </div>
+
+        <div class="mb-3">
+
+    <label>Foto Product</label>
+
+    <input type="file" 
+           name="photo" 
+           class="form-control">
+
+</div>
+
         <button class="btn btn-success">Simpan</button>
         <a href="{{ route('products.index') }}" class="btn btn-secondary">Kembali</a>
 

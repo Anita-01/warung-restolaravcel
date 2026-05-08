@@ -25,43 +25,76 @@ class ProductController extends Controller
     }
 
   
-    public function store(Request $request)
-    {
-        Product::create([
-            'name' => $request->name,
-            'category_id' => $request->category_id,
-            'qty' => $request->qty,
-            'price' => $request->price,
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required',
+        'category_id' => 'required',
+        'qty' => 'required',
+        'price' => 'required',
+        'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+    ]);
 
-        return redirect()->route('products.index')
-            ->with('success', 'Data berhasil ditambahkan');
+    $photoPath = null;
+
+    if($request->hasFile('photo')){
+
+        $photoPath = $request->file('photo')
+            ->store('products', 'public');
     }
+
+    Product::create([
+        'name' => $request->name,
+        'category_id' => $request->category_id,
+        'qty' => $request->qty,
+        'price' => $request->price,
+        'photo' => $photoPath
+    ]);
+
+    return redirect()
+        ->route('products.index')
+        ->with('success', 'Product berhasil ditambahkan');
+}
 
   
     public function edit($id)
     {
         $product = Product::with('category')->findOrFail($id);
+        $categories = Category::all();
 
-        return view('admin.CRUDMenu.editmenu', compact('product'));
+        return view('admin.CRUDMenu.editmenu', compact('product', 'categories'));
     }
 
-    public function updateProduct(Request $request)
-    {
-        $product = Product::findOrFail($request->id);
+public function updateProduct(Request $request)
+{
+    $request->validate([
+        'id' => 'required',
+        'name' => 'required',
+        'category_id' => 'required',
+        'qty' => 'required',
+        'price' => 'required',
+        'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+    ]);
 
-        $product->update([
-            'name' => $request->name,
-            'category_id' => $request->category_id,
-            'qty' => $request->qty,
-            'price' => $request->price,
-        ]);
+    $product = Product::findOrFail($request->id);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Data berhasil diupdate'
-        ]);
+    $data = [
+        'name' => $request->name,
+        'category_id' => $request->category_id,
+        'qty' => $request->qty,
+        'price' => $request->price,
+    ];
+
+    if ($request->hasFile('photo')) {
+        $data['photo'] = $request->file('photo')->store('products', 'public');
     }
+
+    $product->update($data);
+
+    return redirect()
+        ->route('products.index')
+        ->with('success', 'Data product berhasil diupdate');
+}
 
     public function search(Request $request)
     {
@@ -88,4 +121,13 @@ class ProductController extends Controller
     public function totalPrice(Request $request){
         $total = $request->total_price;
     }
+
+
+    public function viewMenu()
+{
+    $products = Product::with('category')->get();
+
+    return view('user.menu', compact('products'));
+}
+    
 }

@@ -53,7 +53,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.orders.index') }}">
+                        <a class="nav-link" href="#">
                             <i class="bi bi-file-earmark me-2"></i> Orders
                         </a>
                     </li>
@@ -65,8 +65,8 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-people me-2"></i> Customers
+                        <a class="nav-link" href="{{ route('admin.users') }}">
+                            <i class="bi bi-people me-2"></i> Data Admin
                         </a>
                     </li>
 
@@ -121,7 +121,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link text-danger" href="{{ route('home') }}">
+                        <a class="nav-link text-danger" href="{{ route('logout') }}">
                             <i class="bi bi-box-arrow-right me-2"></i> Sign out
                         </a>
                     </li>
@@ -136,6 +136,117 @@
                 <h1>Dashboard</h1>
                 <p>Welcome to admin dashboard 👋</p>
             </div>
+            <div class="row mt-4 g-3">
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-house fs-3 text-primary"></i>
+                <h6 class="mt-2">Dashboard</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-file-earmark fs-3 text-primary"></i>
+                <h6 class="mt-2">Orders</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-cart fs-3 text-primary"></i>
+                <h6 class="mt-2">Products</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-people fs-3 text-primary"></i>
+                <h6 class="mt-2">Data Admin</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-graph-up fs-3 text-primary"></i>
+                <h6 class="mt-2">Reports</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-puzzle fs-3 text-primary"></i>
+                <h6 class="mt-2">Integrations</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-file-earmark-text fs-3 text-primary"></i>
+                <h6 class="mt-2">Current month</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-file-earmark-text fs-3 text-primary"></i>
+                <h6 class="mt-2">Last quarter</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-file-earmark-text fs-3 text-primary"></i>
+                <h6 class="mt-2">Social engagement</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-file-earmark-text fs-3 text-primary"></i>
+                <h6 class="mt-2">Year-end sale</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-gear fs-3 text-primary"></i>
+                <h6 class="mt-2">Settings</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-box-arrow-right fs-3 text-danger"></i>
+                <h6 class="mt-2">Sign out</h6>
+            </div>
+        </div>
+    </div>
+
+</div>
         </main>
 
     </div>

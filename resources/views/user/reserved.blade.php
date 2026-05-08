@@ -181,7 +181,7 @@ Swal.fire({
     allowOutsideClick: false
 }).then((result) => {
     if (result.isConfirmed) {
-        window.location.href = "{{ route('trace.order', session('reservation_id')) }}";
+        window.location.href = "{{ route('reservation.detail', session('reservation_id')) }}";
     }
 });
 

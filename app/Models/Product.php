@@ -11,7 +11,8 @@ class Product extends Model
         'category_id',
         'qty',
         'price',
-        'image'
+        'image',
+        'photo'
     ];
 
     protected $with = ['category'];
@@ -29,5 +30,7 @@ class Product extends Model
 {
     return $this->hasMany(ReservationItem::class);
 }
+
+
 
 }
