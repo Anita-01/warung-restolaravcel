@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -13,9 +12,9 @@ class ProductController extends Controller
    
     public function index()
     {
-        $products = Product::with('category')->get();
+         $products = Product::with('category')->paginate(5); 
 
-        return view('admin.CRUDMenu.viewmenuindex', compact('products'));
+    return view('admin.CRUDMenu.viewmenuindex', compact('products'));
     }
 
   
@@ -25,66 +24,94 @@ class ProductController extends Controller
         return view('admin.CRUDMenu.addmenu', compact('categories'));
     }
 
-  public function store(Request $request)
+  
+public function store(Request $request)
 {
-   
-    // VALIDASI
     $request->validate([
         'name' => 'required',
         'category_id' => 'required',
         'qty' => 'required',
         'price' => 'required',
-        'image' => 'required|image|mimes:jpg,jpeg,png|max:2048'
+        'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
     ]);
 
-    // UPLOAD GAMBAR
-    $imageName = time() . '.' . $request->image->extension();
+    $photoPath = null;
 
-    $request->image->move(public_path('img'), $imageName);
+    if($request->hasFile('photo')){
 
-    // SIMPAN KE DB
+        $photoPath = $request->file('photo')
+            ->store('products', 'public');
+    }
+
     Product::create([
         'name' => $request->name,
         'category_id' => $request->category_id,
         'qty' => $request->qty,
         'price' => $request->price,
-        'image' => $imageName
+        'photo' => $photoPath
     ]);
 
-    return redirect()->route('admin.products.add')
-        ->with('success', 'Produk berhasil ditambahkan');
+    return redirect()
+        ->route('products.index')
+        ->with('success', 'Product berhasil ditambahkan');
 }
+
+  
     public function edit($id)
     {
         $product = Product::with('category')->findOrFail($id);
-    $categories = Category::all();
+        $categories = Category::all();
+
         return view('admin.CRUDMenu.editmenu', compact('product', 'categories'));
     }
 
-   public function update(Request $request, $id)
+public function updateProduct(Request $request)
 {
-    $product = Product::findOrFail($id);
+    $request->validate([
+        'id' => 'required',
+        'name' => 'required',
+        'category_id' => 'required',
+        'qty' => 'required',
+        'price' => 'required',
+        'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+    ]);
 
-    $product->update([
+    $product = Product::findOrFail($request->id);
+
+    $data = [
         'name' => $request->name,
         'category_id' => $request->category_id,
         'qty' => $request->qty,
         'price' => $request->price,
-    ]);
+    ];
 
-    return redirect()->route('admin.products.view')
-        ->with('success', 'Produk berhasil diupdate');
+    if ($request->hasFile('photo')) {
+        $data['photo'] = $request->file('photo')->store('products', 'public');
+    }
+
+    $product->update($data);
+
+    return redirect()
+        ->route('products.index')
+        ->with('success', 'Data product berhasil diupdate');
 }
 
     public function search(Request $request)
     {
         $key = $request->key;
 
-        $products = Product::with('category')
-            ->where('name', 'like', '%' . $request->key . '%')
-            ->get();
+         $products = Product::with('category')
+        ->where('name', 'like', '%' . $request->key . '%')
+        ->paginate(5);
 
-        return response()->json($products);
+    return response()->json([
+    'data' => $products->items(),
+        'from' => $products->firstItem(),
+        'to' => $products->lastItem(),
+        'total' => $products->total(),
+        'links' => (string) $products->links()
+
+    ]);
     }
 
     
@@ -108,6 +135,27 @@ class ProductController extends Controller
     $products = Product::with('category')->get();
 
     return view('user.menu', compact('products'));
+}
+
+  public function about()
+{
+
+    return view('user.about');
+}
+
+
+ public function service()
+{
+
+    return view('user.service');
+}
+
+
+public function show($id)
+{
+    $product = Product::findOrFail($id);
+
+    return view('user.detailmenu', compact('product'));
 }
     
 }

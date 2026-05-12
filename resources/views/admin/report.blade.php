@@ -1,152 +1,133 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid pt-4 px-4">
+<div class="container mt-4">
 
-    <!-- FILTER BULAN -->
-    <form method="GET" action="{{ route('admin.admin.report') }}" class="d-flex gap-2 mb-4">
-        <input 
-            type="month" 
-            name="month" 
-            class="form-control"
-            value="{{ request('month') }}"
-        >
+    <h4 class="mb-4 fw-bold">📊 Dashboard Laporan</h4>
 
-        <button class="btn btn-primary">
-            🔍 Search
-        </button>
+    <!-- FILTER -->
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <form method="GET" action="{{ route('report') }}" class="d-flex gap-2">
+                <input type="month" name="month" value="{{ request('month') }}" class="form-control">
+                <button class="btn btn-warning">Search</button>
+            </form>
 
-        <a href="{{ route('admin.admin.report.pdf', ['month' => request('month')]) }}" class="btn btn-danger">
-            Export PDF
-        </a>
-    </form>
-
-    <!-- INFO BULAN -->
-    @if(request('month'))
-        <p class="text-muted mb-3">
-            Data bulan: 
-            <strong>{{ \Carbon\Carbon::parse(request('month'))->format('F Y') }}</strong>
-        </p>
-    @endif
-
-    <div class="row g-4">
-
-        <!-- TOTAL -->
-        <div class="col-md-6">
-            <div class="bg-light rounded p-4">
-                <h6>Total Orders</h6>
-                <h3>{{ $totalCompleted }}</h3>
-
-                <canvas id="barChart"></canvas>
-
-                <div class="mt-2">
-                    Completed: {{ $completedPercent }}% ({{ $totalCompleted }}) |
-                    Pending: {{ $pendingPercent }}% ({{ $totalPending }})
-                </div>
-            </div>
+            <a href="{{ route('report.pdf', ['month' => request('month')]) }}"
+               class="btn btn-danger">
+               Export PDF
+            </a>
         </div>
-
-        <!-- LINE CHART -->
-        <div class="col-md-6">
-            <div class="bg-light rounded p-4">
-                <h6>Pendapatan Harian</h6>
-                <canvas id="lineChart"></canvas>
-            </div>
-        </div>
-
-        <!-- DONUT -->
-        <div class="col-md-6">
-            <div class="bg-light rounded p-4">
-                <h6>Produk Terjual</h6>
-                <canvas id="donutChart"></canvas>
-
-                <div class="mt-3">
-                    @foreach($productSales as $p)
-                        <div>{{ $p->name }} : {{ $p->total }}</div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
-        <!-- BULANAN -->
-        <div class="col-md-6">
-            <div class="bg-light rounded p-4">
-                <h6>Pendapatan Bulanan</h6>
-
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Bulan</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($monthlySales as $m)
-                        <tr>
-                            <td>{{ \Carbon\Carbon::create()->month($m->month)->format('F') }}</td>
-                            <td>Rp {{ number_format($m->total,0,',','.') }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-             <div class="mt-3">
-                <a href="{{ route('admin.dashboardadmin') }}" class="btn btn-secondary">
-                    ← Kembali
-                </a>
-            </div>
     </div>
-</div>
-@endsection
 
-@push('scripts')
+    <!-- STAT CARDS -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6>Total Orders</h6>
+                <h2>{{ $totalAll }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6>Completed</h6>
+                <h2>{{ $totalCompleted }}</h2>
+                <small>{{ $completedPercent }}%</small>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6>Pending</h6>
+                <h2>{{ $totalPending }}</h2>
+                <small>{{ $pendingPercent }}%</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="row mb-4">
+
+        <!-- DAILY -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 p-3">
+                <h6>Pendapatan Harian</h6>
+                <canvas id="dailyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- MONTHLY -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 p-3">
+                <h6>Pendapatan Bulanan</h6>
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PRODUCT SALES -->
+    <div class="card shadow-sm border-0 p-3">
+        <h6>Produk Terlaris</h6>
+
+        @forelse($productSales as $p)
+            <div class="d-flex justify-content-between border-bottom py-2">
+                <span>{{ $p->name }}</span>
+                <strong>{{ $p->total }}</strong>
+            </div>
+        @empty
+            <p class="text-muted">Tidak ada data</p>
+        @endforelse
+    </div>
+
+    <div class="mt-3">
+        <a href="{{ route('dashboardadmin') }}" class="btn btn-secondary">← Kembali</a>
+    </div>
+
+</div>
 
 <!-- CHART JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+/* =========================
+   DAILY CHART
+========================= */
+let dailyLabels = {!! json_encode($dailySales->pluck('date')) !!};
+let dailyData = {!! json_encode($dailySales->pluck('total')) !!};
 
-// ================= BAR =================
-new Chart(document.getElementById('barChart'), {
-    type: 'bar',
-    data: {
-        labels: ['Completed', 'Pending'],
-        datasets: [{
-            data: [{{ $totalCompleted }}, {{ $totalPending }}],
-            backgroundColor: ['blue', 'lightblue']
-        }]
-    }
-});
-
-
-// ================= LINE =================
-new Chart(document.getElementById('lineChart'), {
+new Chart(document.getElementById('dailyChart'), {
     type: 'line',
     data: {
-        labels: {!! json_encode($dailySales->pluck('date')) !!},
+        labels: dailyLabels,
         datasets: [{
-            label: 'Pendapatan',
-            data: {!! json_encode($dailySales->pluck('total')) !!},
-            borderColor: 'green',
-            fill: false
+            label: 'Pendapatan Harian',
+            data: dailyData,
+            borderWidth: 2,
+            tension: 0.3
         }]
     }
 });
 
 
-// ================= DONUT =================
-new Chart(document.getElementById('donutChart'), {
-    type: 'doughnut',
+/* =========================
+   MONTHLY CHART
+========================= */
+let monthLabels = {!! json_encode($monthlySales->pluck('month')) !!};
+let monthData = {!! json_encode($monthlySales->pluck('total')) !!};
+
+new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
     data: {
-        labels: {!! json_encode($productSales->pluck('name')) !!},
+        labels: monthLabels,
         datasets: [{
-            data: {!! json_encode($productSales->pluck('total')) !!},
-            backgroundColor: ['#007bff','#28a745','#ffc107','#dc3545']
+            label: 'Pendapatan Bulanan',
+            data: monthData,
+            borderWidth: 1
         }]
     }
 });
-
 </script>
 
-@endpush
+@endsection

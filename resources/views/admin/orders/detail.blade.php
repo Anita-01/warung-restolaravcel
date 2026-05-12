@@ -19,7 +19,7 @@
                     <span class="badge bg-warning">Pending</span>
                 @elseif($order->status == 'confirmed')
                     <span class="badge bg-success">Confirmed</span>
-                @elseif($order->status == 'in_preparation')
+                @elseif($order->status == 'in preparation')
                     <span class="badge bg-primary">Preparation</span>
                 @elseif($order->status == 'served')
                     <span class="badge bg-info">Served</span>
@@ -74,7 +74,7 @@
 
          
             <div class="mt-3">
-                <a href="{{ route('admin.admin.orders.index') }}" class="btn btn-secondary">
+                <a href="{{ route('orders.index') }}" class="btn btn-secondary">
                     ← Kembali
                 </a>
             </div>

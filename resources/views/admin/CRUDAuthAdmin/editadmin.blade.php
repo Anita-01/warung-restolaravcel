@@ -10,7 +10,7 @@
 
         <div class="card-body">
 
-            <form action="{{ route('admin.users.update', $admin->id) }}" method="POST">
+            <form action="{{ route('admin.update', $admin->id) }}" method="POST">
                 @csrf
 
                 <!-- NAMA -->
@@ -57,7 +57,7 @@
 
                 <!-- BUTTON -->
                 <div class="d-flex justify-content-between">
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('admin.users') }}" class="btn btn-secondary">
                         ← Kembali
                     </a>
 

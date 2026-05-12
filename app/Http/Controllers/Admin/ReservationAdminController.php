@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use App\Models\Product;
 
 class ReservationAdminController extends Controller
 {
@@ -16,7 +17,7 @@ class ReservationAdminController extends Controller
     // =========================
     public function index()
     {
-        $reservations = Reservation::with('items.product')->latest()->get();
+        $reservations = Reservation::paginate(5);
 
         return view('admin.orders.index', compact('reservations'));
     }
@@ -31,33 +32,59 @@ class ReservationAdminController extends Controller
         return view('admin.orders.detail', compact('order'));
     }
 
-    // =========================
-    // UPDATE STATUS (URL)
-    // =========================
-    public function updateStatus(Request $request, $id)
+    public function search(Request $request)
 {
-    $validStatus = ['Pending', 'Confirmed', 'Served', 'Completed'];
-
-    if (!in_array($request->status, $validStatus)) {
-        return back()->with('error', 'Status tidak valid');
+    $query = Reservation::latest();
+    if ($request->key) {
+        $query->where(function($q) use ($request){
+            $q->where('name', 'like', '%' . $request->key . '%')
+              ->orWhere('invoice', 'like', '%' . $request->key . '%');
+        });
     }
 
-    $order = Reservation::findOrFail($id);
-    $order->status = $request->status;
-    $order->save();
+    $reservations = $query->paginate(5);
 
-    return back()->with('success', 'Status berhasil diupdate');
+    return response()->json([
+        'data' => $reservations->items(),
+        'links' => $reservations->links()->render(),
+        'from' => $reservations->firstItem(),
+        'to' => $reservations->lastItem(),
+        'total' => $reservations->total(),
+    ]);
 }
-    // =========================
-    // UPDATE STATUS AJAX
-    // =========================
+   
     public function updateStatusAjax(Request $request, $id)
 {
     $request->validate([
-        'status' => 'required|in:pending,confirmed,in preparation,served,completed,canceled'
+        'status' => 'required|in:pending,confirmed,in_preparation,served,completed,canceled'
     ]);
 
-    $order = Reservation::findOrFail($id);
+    $order = Reservation::with('items.product')->findOrFail($id);
+
+
+    if ($request->status == 'completed' && $order->status != 'completed') {
+
+        DB::transaction(function () use ($order) {
+
+            foreach ($order->items as $item) {
+
+                $product = Product::lockForUpdate()->find($item->product_id);
+
+                if (!$product) continue;
+
+   
+                if ($product->qty < $item->quantity) {
+                    throw new \Exception("Stok {$product->name} tidak cukup");
+                }
+
+              
+                $product->decrement('qty', $item->quantity);
+            }
+
+        });
+    }
+
+    // update status
     $order->status = $request->status;
     $order->save();
 

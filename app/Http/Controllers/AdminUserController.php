@@ -8,75 +8,84 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminUserController extends Controller
 {
-         public function index()
+    public function index()
     {
         $admins = User::where('role', 'admin')->get();
+
         return view('admin.CRUDAuthAdmin.viewadminindex', compact('admins'));
     }
 
-    
     public function create()
     {
         return view('admin.CRUDAuthAdmin.addadmin');
     }
 
-   
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:5'
+            'name'     => 'required',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|min:6'
         ]);
 
         User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name'      => $request->name,
+            'email'     => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'admin'
+            'password_plain' => $request->password,
+            'role'      => 'admin',
+            'is_active' => 1
         ]);
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'Admin berhasil ditambahkan');
+        if ($request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin berhasil ditambahkan'
+        ]);
     }
 
- 
+    return redirect()->route('admin.users')
+        ->with('success', 'Admin berhasil ditambahkan');
+}
     public function edit($id)
     {
-    
         $admin = User::findOrFail($id);
+
         return view('admin.CRUDAuthAdmin.editadmin', compact('admin'));
     }
 
-   
     public function update(Request $request, $id)
     {
         $admin = User::findOrFail($id);
 
-        $admin->update([
-            'name' => $request->name,
-            'email' => $request->email
+        $request->validate([
+            'name'  => 'required',
+            'email' => 'required|email|unique:users,email,' . $admin->id,
+            'password' => 'nullable|min:6'
         ]);
 
-        // update password jika diisi
-        if ($request->password) {
-            $admin->update([
-                'password' => Hash::make($request->password)
-            ]);
+        $admin->name = $request->name;
+        $admin->email = $request->email;
+
+        if ($request->filled('password')) {
+            $admin->password = Hash::make($request->password);
         }
 
-        return redirect()->route('admin.users.index')
+        $admin->save();
+
+        return redirect()->route('admin.users')
             ->with('success', 'Admin berhasil diupdate');
     }
 
-
     public function destroy($id)
     {
-        User::findOrFail($id)->delete();
+       $admin = User::findOrFail($id);
+    $admin->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Admin berhasil dihapus'
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'message' => 'Admin berhasil dihapus'
+    ]);
+}
+
 }

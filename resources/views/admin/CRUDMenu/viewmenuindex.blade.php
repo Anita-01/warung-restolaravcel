@@ -1,168 +1,198 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    /* FIX PAGINATION: Memastikan angka dan panah terlihat jelas */
+    #pagination svg {
+        width: 20px;
+        height: 20px;
+    }
+    #pagination nav div:first-child {
+        display: none; 
+    }
+   
+    .pagination .page-link {
+        color: #007bff !important; /* Warna biru standar */
+        background-color: #fff !important;
+        border: 1px solid #dee2e6 !important;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #007bff !important;
+        border-color: #007bff !important;
+        color: #fff !important;
+    }
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d !important;
+    }
+</style>
+
 <div class="container mt-4">
 
-    <h3 class="mb-3">List Products</h3>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">List Products</h3>
+        <a href="{{ route('dashboardadmin') }}" class="btn btn-secondary btn-sm">
+            ← Kembali
+        </a>
+    </div>
 
-    <!-- SEARCH -->
-    <input type="text" id="search" class="form-control mb-3" placeholder="Search product...">
+    {{-- 🔍 SEARCH --}}
+    <div class="mb-3">
+        <input type="text" id="search" class="form-control" placeholder="Search product...">
+    </div>
 
-    <!-- TABLE -->
-    <table class="table table-bordered table-hover">
-        <thead class="table-dark text-center">
-            <tr>
-                <th>#</th>
-                <th>Nama</th>
-                <th>Kategori</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th>Action</th>
-            </tr>
-        </thead>
+    {{-- 📋 TABLE (KEMBALI KE PUTIH) --}}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle bg-white">
+            <thead class="table-light text-center">
+                <tr>
+                    <th width="50">#</th>
+                    <th width="100">Foto</th>
+                    <th>Nama</th>
+                    <th>Kategori</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th width="180">Action</th>
+                </tr>
+            </thead>
 
-        <tbody id="tableBody">
-            @foreach($products as $p)
-            <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $p->name }}</td>
-                <td>{{ $p->category->name ?? 'Tanpa Kategori' }}</td>
-                <td>{{ $p->qty }}</td>
-                <td>Rp {{ number_format($p->price,0,',','.') }}</td>
-                <td class="text-center">
+            <tbody id="tableBody">
+                @foreach($products as $p)
+                <tr>
+                    <td class="text-center">{{ ($products->currentPage() - 1) * $products->perPage() + $loop->iteration }}</td>
+                    <td class="text-center">
+                        @if($p->image)
+                            <img src="{{ asset('img/' . $p->image) }}" 
+                                 width="60" height="60"
+                                 style="object-fit: cover; border-radius: 5px;">
+                        @else
+                            <span class="text-muted small">No Image</span>
+                        @endif
+                    </td>
+                    <td>{{ $p->name }}</td>
+                    <td>{{ $p->category->name ?? 'Uncategorized' }}</td>
+                    <td>{{ $p->qty }}</td>
+                    <td>Rp {{ number_format($p->price, 0, ',', '.') }}</td>
+                    <td class="text-center">
+                        <a href="{{ route('editmenu', $p->id) }}" class="btn btn-warning btn-sm fw-bold text-dark">EDIT</a>
+                        <button class="btn btn-danger btn-sm fw-bold btn-delete" data-id="{{ $p->id }}">
+                            DELETE
+                        </button>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 
-                    <!-- EDIT -->
-                    <a href="{{ route('admin.products.edit', $p->id) }}" class="btn btn-warning btn-sm">
-                        Edit
-                    </a>
+    {{-- 🔢 PAGINATION --}}
+    <div class="mt-3">
+        <div id="pagination">
+            {{ $products->links() }}
+        </div>
+        <div id="infoData" class="text-muted small mt-2">
+            Showing {{ $products->firstItem() ?? 0 }} to {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} results
+        </div>
+    </div>
 
-                    <!-- DELETE (AJAX) -->
-                    <button class="btn btn-danger btn-sm btn-delete"
-                        data-id="{{ $p->id }}">
-                        Delete
-                    </button>
-
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-
-    <!-- ADD BUTTON -->
-    <a href="{{ route('admin.products.add') }}" class="btn btn-primary mt-3">
-        + Add Menu
+    <a href="{{ route('products.add') }}" class="btn btn-outline-warning mt-3 fw-bold">
+        + ADD MENU
     </a>
 
 </div>
 @endsection
 
 @section('scripts')
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-let timer;
+$(document).ready(function(){
+    let timer;
 
-// ============================
-// 🔍 SEARCH AJAX
-// ============================
-$('#search').on('keyup', function(){
-
-    clearTimeout(timer);
-    let key = $(this).val();
-
-    timer = setTimeout(function(){
-
+    function loadData(page = 1, key = '') {
         $.ajax({
-            url: "/products/search",
+            url: "/products/search?page=" + page,
             method: "GET",
             data: { key: key },
-
-            success: function(data){
-
+            success: function(res){
                 let rows = '';
-
-                if(data.length === 0){
-                    rows = `<tr><td colspan="6" class="text-center">Data tidak ditemukan</td></tr>`;
+                if(res.data.length === 0){
+                    rows = `<tr><td colspan="7" class="text-center">Data tidak ditemukan</td></tr>`;
                 } else {
-                    data.forEach(function(p, index){
+                    res.data.forEach(function(p, index){
+                        let image = p.image 
+                            ? `<img src="/img/${p.image}" width="60" height="60" style="object-fit:cover;border-radius:5px;">`
+                            : `<span class="text-muted small">No Image</span>`;
+
                         rows += `
                         <tr>
-                            <td>${index + 1}</td>
+                            <td class="text-center">${res.from + index}</td>
+                            <td class="text-center">${image}</td>
                             <td>${p.name}</td>
-                            <td>${p.category ? p.category.name : 'Tanpa Kategori'}</td>
+                            <td>${p.category ? p.category.name : 'Uncategorized'}</td>
                             <td>${p.qty}</td>
-                            <td>Rp ${Number(p.price).toLocaleString()}</td>
+                            <td>Rp ${Number(p.price || 0).toLocaleString('id-ID')}</td>
                             <td class="text-center">
-                                <a href="/admin/products/edit/${p.id}" class="btn btn-warning btn-sm">
-                                    Edit
-                                </a>
-
-                                <button class="btn btn-danger btn-sm btn-delete"
-                                    data-id="${p.id}">
-                                    Delete
-                                </button>
+                                <a href="/editmenu/${p.id}" class="btn btn-warning btn-sm fw-bold text-dark">EDIT</a>
+                                <button class="btn btn-danger btn-sm fw-bold btn-delete" data-id="${p.id}">DELETE</button>
                             </td>
-                        </tr>
-                        `;
+                        </tr>`;
                     });
                 }
 
                 $('#tableBody').html(rows);
+                $('#infoData').html(`Showing ${res.from ?? 0} to ${res.to ?? 0} of ${res.total} results`);
+                $('#pagination').html(res.links);
             }
         });
+    }
 
-    }, 300);
-});
+    // Search logic
+    $('#search').on('keyup', function(){
+        clearTimeout(timer);
+        let key = $(this).val();
+        timer = setTimeout(function(){
+            loadData(1, key);
+        }, 300);
+    });
 
-
-// ============================
-// 🗑 DELETE AJAX + SWEETALERT
-// ============================
-$(document).on('click', '.btn-delete', function(){
-
-    let id = $(this).data('id');
-
-    Swal.fire({
-        title: 'Yakin hapus?',
-        text: "Data tidak bisa dikembalikan!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Ya, hapus!'
-    }).then((result) => {
-
-        if (result.isConfirmed) {
-
-            $.ajax({
-                url: "/admin/products/" + id,
-                method: "POST",
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    _method: 'DELETE'
-                },
-
-                success: function(res){
-
-                    Swal.fire({
-                        title: 'Berhasil!',
-                        text: res.message,
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    // REMOVE ROW TANPA RELOAD
-                    $('button[data-id="'+id+'"]').closest('tr').remove();
-                }
-            });
-
+    // Pagination AJAX click
+    $(document).on('click', '#pagination a', function(e){
+        e.preventDefault();
+        let url = $(this).attr('href');
+        if(url) {
+            let page = url.split('page=')[1];
+            let key = $('#search').val();
+            loadData(page, key);
         }
     });
 
+    // Delete
+    $(document).on('click', '.btn-delete', function(){
+        let id = $(this).data('id');
+        Swal.fire({
+            title: 'Yakin hapus?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Ya, hapus!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "/products/" + id,
+                    method: "POST",
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        _method: 'DELETE'
+                    },
+                    success: function(res){
+                        Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+                        loadData(); 
+                    }
+                });
+            }
+        });
+    });
 });
 </script>
-
 @endsection

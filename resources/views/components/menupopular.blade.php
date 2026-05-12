@@ -11,6 +11,10 @@
 
         <!-- Loop kategori -->
         @foreach($categories as $cat)
+
+            {{-- Optional: skip kalau kosong --}}
+            @if($cat->menus->count() > 0)
+
             <div class="mb-5 wow fadeInUp" data-wow-delay="0.1s">
 
                 <!-- Judul kategori -->
@@ -24,14 +28,15 @@
 
                 <!-- Menu -->
                 <div class="row g-4">
-                    @forelse($cat->menus as $menu)
+
+                    @foreach($cat->menus as $menu)
                         <div class="col-lg-6">
                             <div class="d-flex align-items-center">
-                                
+
                                 <img class="flex-shrink-0 img-fluid rounded"
                                      src="{{ asset('img/' . $menu->image) }}"
                                      alt="{{ $menu->name }}"
-                                     style="width: 80px;">
+                                     style="width: 80px; height: 80px; object-fit: cover;">
 
                                 <div class="w-100 d-flex flex-column text-start ps-4">
                                     <h5 class="d-flex justify-content-between border-bottom pb-2">
@@ -47,14 +52,14 @@
 
                             </div>
                         </div>
-                    @empty
-                        <div class="col-12 text-center">
-                            <p>Belum ada menu untuk kategori ini.</p>
-                        </div>
-                    @endforelse
+                    @endforeach
+
                 </div>
 
             </div>
+
+            @endif
+
         @endforeach
 
     </div>

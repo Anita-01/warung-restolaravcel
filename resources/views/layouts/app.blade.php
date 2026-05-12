@@ -113,8 +113,20 @@
 
 
 <body>
+    
+    <style>
+.card {
+    border-radius: 12px;
+}
+h6 {
+    font-weight: 600;
+}
+</style>
 
     @yield('content')
+
+
+
 
     @yield('scripts')
 <!-- JavaScript Libraries -->
@@ -124,12 +136,40 @@
     <script src="lib/easing/easing.min.js"></script>
     <script src="lib/waypoints/waypoints.min.js"></script>
     <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/wow/wow.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/counterup/counterup.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/tempusdominus/js/moment.min.js"></script>
+    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-@stack('scripts')
+
 
 </body>
+
+<style>
+
+.btn-back{
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.btn-back:hover{
+    background-color: red;
+    color: white;
+}
+
+</style>
+
 </html>

@@ -2,89 +2,130 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Reservation;
 use App\Models\Product;
+use App\Models\Reservation;
 use App\Models\ReservationItem;
-use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-
+use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
+
     public function makeReservation(Request $request)
     {
-        // 1. Validasi Input
         $request->validate([
             'name'  => 'required|string|max:255',
             'email' => 'required|email',
-            'date'  => 'required',
+            'date'  => 'required|date'
         ]);
 
-        // 2. Cek apakah ada produk yang dipilih
-        $products = $request->products ?? [];
-        $filteredProducts = array_filter($products, function($qty) {
-            return $qty > 0;
-        });
+        $selectedDate = Carbon::parse($request->date)->seconds(0);
+        $now = Carbon::now()->seconds(0);
 
-        if (empty($filteredProducts)) {
-            return back()
-                ->withErrors(['products' => 'Minimal pilih 1 produk'])
-                ->withInput();
+        if ($selectedDate->lt($now)) {
+            return back()->withErrors([
+                'date' => 'Tidak bisa booking di waktu yang sudah lewat'
+            ])->withInput();
         }
 
-        // 3. Mulai Transaksi Database
-        return DB::transaction(function () use ($request, $filteredProducts) {
-            
-            // Hitung nomor antrian hari ini
-            $today = now()->toDateString();
-            $lastQueue = Reservation::whereDate('created_at', $today)->max('queue_number');
-            $nextQueue = $lastQueue ? $lastQueue + 1 : 1;
+        if ($selectedDate->isSameDay($now)) {
+            $minTime = $now->copy()->addHour();
 
-         
-            $reservation = Reservation::create([
-                'invoice'         => $this->generateInvoice(),
-                'name'             => $request->name,
-                'email'            => $request->email,
-                'reservation_date' => $request->date,
-                'total_price'      => 0, 
-                'queue_number'     => $nextQueue,
-                'status'           => 'pending'
-            ]);
-
-            $total = 0;
-
-            // Simpan detail item makanan
-            foreach ($filteredProducts as $productId => $qty) {
-                $product = Product::find($productId);
-                if (!$product) continue;
-
-                $subtotal = $product->price * $qty;
-                $total += $subtotal;
-
-                ReservationItem::create([
-                    'reservation_id' => $reservation->id,
-                    'product_id'     => $productId,
-                    'quantity'       => $qty,
-                    'price'          => $product->price
-                ]);
+            if ($selectedDate->lt($minTime)) {
+                return back()->withErrors([
+                    'date' => 'Reservasi hari ini minimal 1 jam dari sekarang'
+                ])->withInput();
             }
+        }
 
-            // Update total harga ke tabel reservasi
-            $reservation->update(['total_price' => $total]);
+        $products = $request->products ?? [];
+        $filteredProducts = array_filter($products, fn($qty) => $qty > 0);
 
-            // Hitung estimasi waktu (misal 1 orang = 5 menit)
-            $estimate = $nextQueue * 5;
+        if (empty($filteredProducts)) {
+            return back()->withErrors([
+                'products' => 'Minimal pilih 1 produk'
+            ])->withInput();
+        }
 
-            // Redirect dengan data lengkap untuk SweetAlert
-            return redirect()->back()->with([
-                'success'        => 'Selamat, anda berhasil melakukan reservasi!',
-                'reservation_id' => $reservation->id,
-                'queue_number'   => 'A' . str_pad($nextQueue, 3, '0', STR_PAD_LEFT),
-                'estimate'       => $estimate
-            ]);
-        });
+        try {
+            return DB::transaction(function () use ($request, $filteredProducts) {
+
+                $today = now()->toDateString();
+
+                $lastQueue = Reservation::whereDate('created_at', $today)
+                    ->max('queue_number');
+
+                $nextQueue = $lastQueue ? $lastQueue + 1 : 1;
+
+                $productIds = array_keys($filteredProducts);
+
+                $productsDB = Product::whereIn('id', $productIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
+                foreach ($filteredProducts as $productId => $qty) {
+                    $product = $productsDB[$productId] ?? null;
+
+                    if (!$product) continue;
+
+                    if ($qty > $product->qty) {
+                        throw new \Exception(
+                            "Produk {$product->name} hanya tersedia {$product->qty}"
+                        );
+                    }
+                }
+
+                $reservation = Reservation::create([
+                    'invoice'          => $this->generateInvoice(),
+                    'name'             => $request->name,
+                    'email'            => $request->email,
+                    'reservation_date' => $request->date,
+                    'total_price'      => 0,
+                    'queue_number'     => $nextQueue,
+                    'status'           => 'pending',
+                ]);
+
+                $total = 0;
+
+                foreach ($filteredProducts as $productId => $qty) {
+                    $product = $productsDB[$productId];
+
+                    $subtotal = $product->price * $qty;
+                    $total += $subtotal;
+
+                    ReservationItem::create([
+                        'reservation_id' => $reservation->id,
+                        'product_id'     => $productId,
+                        'quantity'       => $qty,
+                        'price'          => $product->price,
+                    ]);
+
+                    
+                }
+
+                $reservation->update([
+                    'total_price' => $total
+                ]);
+
+                $estimate = $nextQueue * 5;
+
+                return redirect()->back()->with([
+                    'success'        => 'Berhasil reservasi!',
+                    'reservation_id' => $reservation->id,
+                    'queue_number'   => 'A' . str_pad($nextQueue, 3, '0', STR_PAD_LEFT),
+                    'estimate'       => $estimate,
+                ]);
+            });
+
+        } catch (\Exception $e) {
+            return back()->withErrors([
+                'products' => $e->getMessage()
+            ])->withInput();
+        }
     }
 
     public function queueData()
@@ -101,99 +142,58 @@ class ReservationController extends Controller
             ->count();
 
         return response()->json([
-            'current_queue' => $current ? 'A' . str_pad($current->queue_number, 3, '0', STR_PAD_LEFT) : '-',
-            'total_waiting' => $totalWaiting
-        ]);
-    }
-public function detailReservation($id)
-{
-    $reservation = Reservation::with('items.product')->findOrFail($id);
-
-    return view('user.orderreserved', compact('reservation'));
-}
-
-public function downloadInvoice($id)
-{
-    $reservation = Reservation::with('items.product')->findOrFail($id);
-
-    $pdf = Pdf::loadView('user.invoice_pdf', compact('reservation'));
-
-    return $pdf->download('invoice-'.$reservation->id.'.pdf');
-}
-public function traceOrder(Request $request)
-{
-    $request->validate([
-        'antrian' => 'required',
-        'phone' => 'required|email'
-    ]);
-
-    $reservation = Reservation::with('items.product')
-        ->where('invoice', $request->antrian)
-        ->where('email', $request->phone)
-        ->first();
-
-    if (!$reservation) {
-
-        return back()->with([
-            'error' => 'Data reservation tidak ditemukan'
+            'current_queue' => $current
+                ? 'A' . str_pad($current->queue_number, 3, '0', STR_PAD_LEFT)
+                : '-',
+            'total_waiting' => $totalWaiting,
         ]);
     }
 
-    return view('user.trace-order', compact('reservation'));
-}
+    public function detailReservation($id)
+    {
+        $reservation = Reservation::with('items.product')
+            ->findOrFail($id);
 
-private function generateInvoice()
-{
-   $date = now()->format('Ymd');
+        return view('user.orderreserved', compact('reservation'));
+    }
 
-    $count = Reservation::whereDate('created_at', now())->count();
-    
-    do {
-        $count++;
-        $invoice = 'INV-' . now()->format('YmdHis') . '-' . rand(100,999);
-    } while (Reservation::where('invoice', $invoice)->exists());
+    public function downloadInvoice($id)
+    {
+        $reservation = Reservation::with('items.product')
+            ->findOrFail($id);
 
-    return $invoice;
-}
+        $pdf = Pdf::loadView('user.invoice_pdf', compact('reservation'));
 
+        return $pdf->download('invoice-' . $reservation->id . '.pdf');
+    }
 
-public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required',
-        'email' => 'required|email',
-        'date' => 'required',
-    ]);
+    public function traceOrder(Request $request)
+    {
+        $request->validate([
+            'antrian' => 'required',
+            'phone'   => 'required|email',
+        ]);
 
-    // nomor antrian
-    $lastQueue = Reservation::max('queue_number');
+        $reservation = Reservation::with('items.product')
+            ->where('invoice', $request->antrian)
+            ->where('email', $request->phone)
+            ->first();
 
-    $queueNumber = $lastQueue ? $lastQueue + 1 : 1;
+        if (!$reservation) {
+            return back()->with([
+                'error' => 'Data reservation tidak ditemukan'
+            ]);
+        }
 
-  
-    $invoice = 'INV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
-     
-    $reservation = Reservation::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'reservation_date' => $request->date,
-        'total_price' => $request->total_price,
-        'queue_number' => $queueNumber,
+        return view('user.trace-order', compact('reservation'));
+    }
 
-        
-        'invoice' => $invoice,
+    private function generateInvoice()
+    {
+        $date = now()->format('Ymd');
 
-        'status' => 'pending',
-    ]);
+        $count = Reservation::whereDate('created_at', now())->count() + 1;
 
-    return redirect()->route('reservation.detail');
-
-}
-
-
-
-
-
-
-
+        return 'INV-' . $date . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+    }
 }

@@ -56,6 +56,11 @@
    class="btn btn-success mt-3">
    Download Invoice PDF
 </a>
+<div class="m-3">
+                    <a href="{{ route('index') }}" class="btn btn-secondary">
+                        ← Kembali
+                    </a>
+                </div>
 </div>
 @section('scripts')
 <script>

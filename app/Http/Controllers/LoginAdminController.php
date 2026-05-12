@@ -23,7 +23,7 @@ class LoginAdminController extends Controller
            $request->session()->regenerate();
 
     if (Auth::user()->role == 'admin') {
-        return redirect()->route('admin.dashboardadmin');
+        return redirect()->route('dashboardadmin');
     }
 
     return redirect()->route('index');

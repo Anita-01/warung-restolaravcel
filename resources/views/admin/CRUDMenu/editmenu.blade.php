@@ -3,110 +3,84 @@
 @section('content')
 <div class="container mt-4">
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Edit Product</h5>
+    <h3>Edit Product</h3>
+
+    <form action="{{ route('updateProduct') }}" 
+          method="POST" 
+          enctype="multipart/form-data">
+        @csrf
+
+        <input type="hidden" name="id" value="{{ $product->id }}">
+
+        <div class="mb-3">
+            <label>Nama</label>
+            <input type="text" 
+                   name="name" 
+                   class="form-control" 
+                   value="{{ $product->name }}" 
+                   required>
         </div>
 
-        <div class="card-body">
+        <div class="mb-3">
+            <label>Kategori</label>
 
-            <form id="formUpdate" action="{{ route('admin.products.update', $product->id) }}" method="POST">
-                @csrf
+            <select name="category_id" class="form-control" required>
+                <option value="">-- Pilih Kategori --</option>
 
-                <!-- NAMA -->
-                <div class="mb-3">
-                    <label class="form-label">Nama</label>
-                    <input type="text" name="name" value="{{ $product->name }}" class="form-control" required>
-                </div>
-
-                <!-- KATEGORI -->
-                <div class="mb-3">
-                    <label class="form-label">Kategori</label>
-
-                    <select name="category_id" class="form-control" required>
-                        <option value="">-- Pilih Kategori --</option>
-
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}"
-                                {{ $product->category_id == $cat->id ? 'selected' : '' }}>
-                                {{ $cat->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- QTY -->
-                <div class="mb-3">
-                    <label class="form-label">Qty</label>
-                    <input type="number" name="qty" value="{{ $product->qty }}" class="form-control" required>
-                </div>
-
-                <!-- PRICE -->
-                <div class="mb-3">
-                    <label class="form-label">Price</label>
-                    <input type="number" name="price" value="{{ $product->price }}" class="form-control" required>
-                </div>
-
-                <!-- BUTTON -->
-                <div class="d-flex justify-content-between">
-                    <a href="{{ route('admin.products.view') }}" class="btn btn-secondary">
-                        ← Kembali
-                    </a>
-
-                    <button type="submit" id="btnUpdate" class="btn btn-primary">
-                        Update
-                    </button>
-                </div>
-
-            </form>
-
+                @foreach($categories as $cat)
+                    <option value="{{ $cat->id }}"
+                        {{ $product->category_id == $cat->id ? 'selected' : '' }}>
+                        {{ $cat->name }}
+                    </option>
+                @endforeach
+            </select>
         </div>
-    </div>
+
+        <div class="mb-3">
+            <label>Qty</label>
+            <input type="number" 
+                   name="qty" 
+                   class="form-control" 
+                   value="{{ $product->qty }}" 
+                   required>
+        </div>
+
+        <div class="mb-3">
+            <label>Price</label>
+            <input type="number" 
+                   name="price" 
+                   class="form-control" 
+                   value="{{ $product->price }}" 
+                   required>
+        </div>
+
+        <div class="mb-3">
+            <label>Foto Product</label>
+
+            @if($product->photo)
+                <div class="mb-2">
+                    <img src="{{ asset('storage/' . $product->photo) }}"
+                         width="120"
+                         height="120"
+                         style="object-fit: cover; border-radius: 8px;">
+                </div>
+            @else
+                <p class="text-muted mb-2">Belum ada foto</p>
+            @endif
+
+            <input type="file" 
+                   name="photo" 
+                   class="form-control">
+
+            <small class="text-muted">
+                Kosongkan jika tidak ingin mengganti foto.
+            </small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="{{ route('products.index') }}" class="btn btn-secondary">Kembali</a>
+
+    </form>
 
 </div>
-@endsection
-
-{{-- ================= SCRIPT ================= --}}
-@section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-// ================= CONFIRM + LOADING =================
-document.getElementById('formUpdate').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    Swal.fire({
-        title: 'Yakin update?',
-        text: "Data akan diperbarui!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Ya, update!'
-    }).then((result) => {
-
-        if (result.isConfirmed) {
-
-            // disable button + loading
-            let btn = document.getElementById('btnUpdate');
-            btn.disabled = true;
-            btn.innerHTML = 'Loading...';
-
-            this.submit(); // lanjut submit
-        }
-    });
-});
-
-
-// ================= SUCCESS ALERT =================
-@if(session('success'))
-Swal.fire({
-    icon: 'success',
-    title: 'Berhasil!',
-    text: '{{ session('success') }}',
-    showConfirmButton: false,
-    timer: 2000
-});
-@endif
-</script>
 @endsection

@@ -40,5 +40,15 @@ class UserAdminSeeder extends Seeder
         ]
     );
 
+     User::firstOrCreate(
+        ['email' => 'adminlia@gmail.com'],
+        [
+            'name' => 'adminlia',
+            'password' => Hash::make('12345'),
+            'role' => 'admin',
+            'is_active' => true,
+        ]
+    );
+
     }
 }

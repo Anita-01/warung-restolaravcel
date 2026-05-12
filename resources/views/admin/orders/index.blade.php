@@ -8,9 +8,21 @@
             <h5 class="mb-0 fw-bold">Daftar Reservasi</h5>
         </div>
 
+       
+        <div class="p-3">
+            <input type="text" id="search" class="form-control" placeholder="Search nama / invoice...">
+        </div>
+
+        
+        <div id="infoData" class="px-3 pb-2 text-muted small">
+            Menampilkan {{ $reservations->firstItem() ?? 0 }} - {{ $reservations->lastItem() ?? 0 }} 
+            dari {{ $reservations->total() }} data
+        </div>
+
         <div class="card-body p-0">
             <div class="table-responsive">
 
+             
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr class="text-muted small text-uppercase">
@@ -23,72 +35,17 @@
                         </tr>
                     </thead>
 
-                    <tbody>
-                        @foreach($reservations as $key => $r)
-                        <tr>
-
-                            <td>{{ $key + 1 }}</td>
-
-                            <td>
-                                {{ \Carbon\Carbon::parse($r->reservation_date)->format('d M Y') }}
-                            </td>
-
-                            <td>{{ $r->name }}</td>
-
-                            <td>{{ $r->invoice }}</td>
-
-                            <td class="text-center">
-
-                                @php
-                                    $badgeClass = [
-                                        'pending' => 'bg-warning text-dark',
-                                        'confirmed' => 'bg-success',
-                                        'in preparation' => 'bg-primary',
-                                        'served' => 'bg-info',
-                                        'completed' => 'bg-dark',
-                                        'canceled' => 'bg-danger'
-                                    ][$r->status] ?? 'bg-secondary';
-                                @endphp
-
-                                <!-- BADGE -->
-                                <div class="mb-2">
-                                    <span id="badge-{{ $r->id }}" class="badge {{ $badgeClass }}">
-                                        {{ ucfirst($r->status) }}
-                                    </span>
-                                </div>
-
-                                <!-- DROPDOWN AJAX -->
-                                <select class="form-select form-select-sm status-dropdown"
-                                        data-id="{{ $r->id }}"
-                                        style="width: 150px; margin:auto;">
-                                        
-                                    @foreach(['pending','confirmed','in preparation','served','completed','canceled'] as $status)
-                                        <option value="{{ $status }}"
-                                            {{ $r->status == $status ? 'selected' : '' }}>
-                                            {{ ucfirst($status) }}
-                                        </option>
-                                    @endforeach
-
-                                </select>
-
-                            </td>
-
-                            <td>
-                                <a href="{{ route('admin.orders.detail', $r->id) }}"
-                                   class="btn btn-outline-warning btn-sm">
-                                   Detail
-                                </a>
-                            </td>
-
-                        </tr>
-                        @endforeach
-                    </tbody>
-
+                    <tbody id="tableBody"></tbody>
                 </table>
-                   <div class="mt-3">
-                <a href="{{ route('admin.dashboardadmin') }}" class="btn btn-secondary">
-                    ← Kembali
-                </a>
+
+             
+                <div id="pagination" class="p-3"></div>
+
+                <div class="m-3">
+                    <a href="{{ route('dashboardadmin') }}" class="btn btn-secondary">
+                        ← Kembali
+                    </a>
+                </div>
 
             </div>
         </div>
@@ -96,39 +53,169 @@
 
 </div>
 
-<!-- AJAX SCRIPT -->
+<!-- CSRF -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-$('.status-dropdown').change(function(){
+$(document).ready(function(){
 
-    let id = $(this).data('id');
-    let status = $(this).val();
+    let timer;
 
-    $.ajax({
-        url: "/admin/orders/" + id + "/status",
-        method: "POST",
-        data: {
-            _token: "{{ csrf_token() }}",
-            status: status
-        },
-        success: function(res){
+  
+    function loadData(page = 1, key = '') {
 
-            let badge = $('#badge-' + id);
+        $.ajax({
+            url: "{{ route('orders.search') }}?page=" + page,
+            method: "GET",
+            data: { key: key },
 
-            let color = {
-                'pending': 'bg-warning text-dark',
-                'confirmed': 'bg-success',
-                'in preparation': 'bg-primary',
-                'served': 'bg-info',
-                'completed': 'bg-dark',
-                'canceled': 'bg-danger'
-            };
+            success: function(res){
 
-            badge.removeClass().addClass('badge ' + color[status]);
-            badge.text(status.charAt(0).toUpperCase() + status.slice(1));
+                let rows = '';
 
-        }
+                if(res.data.length === 0){
+                    rows = `<tr>
+                                <td colspan="6" class="text-center">
+                                    Data tidak ditemukan
+                                </td>
+                            </tr>`;
+                } else {
+
+                    res.data.forEach(function(r, index){
+
+                        let color = {
+                            'pending': 'bg-warning text-dark',
+                            'confirmed': 'bg-success',
+                            'in_preparation': 'bg-primary',
+                            'served': 'bg-info',
+                            'completed': 'bg-dark',
+                            'canceled': 'bg-danger'
+                        };
+
+                        let statusText = r.status.replace('_',' ');
+                        statusText = statusText.charAt(0).toUpperCase() + statusText.slice(1);
+
+                        let tanggal = new Date(r.reservation_date)
+                            .toLocaleDateString('id-ID', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                            });
+
+                        rows += `
+                        <tr>
+                            <td>${res.from + index}</td>
+                            <td>${tanggal}</td>
+                            <td>${r.name}</td>
+                            <td>${r.invoice}</td>
+
+                            <td class="text-center">
+                                <div class="mb-2">
+                                    <span id="badge-${r.id}" class="badge ${color[r.status] || 'bg-secondary'}">
+                                        ${statusText}
+                                    </span>
+                                </div>
+
+                                <select class="form-select form-select-sm status-dropdown"
+                                        data-id="${r.id}"
+                                        style="width:150px; margin:auto;">
+                                    ${['pending','confirmed','in_preparation','served','completed','canceled'].map(s => `
+                                        <option value="${s}" ${r.status === s ? 'selected' : ''}>
+                                            ${s.replace('_',' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </td>
+
+                            <td>
+                                <a href="/admin/orders/${r.id}" class="btn btn-outline-warning btn-sm">
+                                   Detail
+                                </a>
+                            </td>
+                        </tr>
+                        `;
+                    });
+                }
+
+                $('#tableBody').html(rows);
+
+            
+                $('#infoData').html(
+                    `Menampilkan ${res.from ?? 0} - ${res.to ?? 0} dari ${res.total} data`
+                );
+
+         
+                $('#pagination').html(res.links);
+                $('#pagination .pagination').addClass('justify-content-center');
+            }
+        });
+    }
+
+
+    loadData();
+
+  
+    $('#search').on('keyup', function(){
+
+        clearTimeout(timer);
+
+        let key = $(this).val();
+
+        timer = setTimeout(function(){
+            loadData(1, key);
+        }, 300);
+    });
+
+  
+    $(document).on('click', '#pagination a', function(e){
+        e.preventDefault();
+
+        let url = $(this).attr('href');
+        if(!url) return;
+
+        let page = url.split('page=')[1];
+        let key = $('#search').val();
+
+        loadData(page, key);
+    });
+
+  
+    $(document).on('change', '.status-dropdown', function(){
+
+        let id = $(this).data('id');
+        let status = $(this).val();
+
+        $.ajax({
+            url: "/admin/orders/" + id + "/status",
+            method: "POST",
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: { status: status },
+
+            success: function(){
+
+                let badge = $('#badge-' + id);
+
+                let color = {
+                    'pending': 'bg-warning text-dark',
+                    'confirmed': 'bg-success',
+                    'in_preparation': 'bg-primary',
+                    'served': 'bg-info',
+                    'completed': 'bg-dark',
+                    'canceled': 'bg-danger'
+                };
+
+                badge.removeClass().addClass('badge ' + color[status]);
+
+                let text = status.replace('_',' ');
+                badge.text(text.charAt(0).toUpperCase() + text.slice(1));
+            }
+        });
+
     });
 
 });
