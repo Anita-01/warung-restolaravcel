@@ -6,7 +6,7 @@
     <input type="hidden" name="id" value="{{ $product->id }}">
 
     <input type="text" name="name" value="{{ $product->name }}" class="form-control mb-2">
-    <input type="text" name="category" value="{{ $product->category }}" class="form-control mb-2">
+    <input type="text" name="category_name" value="{{ $product->category->name ?? '' }}" class="form-control mb-2" readonly>
     <input type="number" name="qty" value="{{ $product->qty }}" class="form-control mb-2">
     <input type="number" name="price" value="{{ $product->price }}" class="form-control mb-2">
 
