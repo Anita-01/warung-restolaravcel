@@ -35,12 +35,11 @@ FROM php:8.4-fpm-alpine
 RUN apk add --no-cache \
     nginx \
     supervisor \
-    sqlite \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd pdo pdo_mysql pdo_sqlite \
+    && docker-php-ext-install -j$(nproc) gd pdo_mysql \
     && rm -rf /var/cache/apk/*
 
 WORKDIR /app
