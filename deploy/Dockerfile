@@ -64,10 +64,10 @@ RUN php artisan config:cache \
     && php artisan view:cache
 
 # Nginx config
-COPY build/nginx.conf /etc/nginx/http.d/default.conf
+COPY deploy/nginx.conf /etc/nginx/http.d/default.conf
 
 # Supervisor config
-COPY build/supervisor.conf /etc/supervisor.d/app.ini
+COPY deploy/supervisor.conf /etc/supervisor.d/app.ini
 
 EXPOSE 80
 
