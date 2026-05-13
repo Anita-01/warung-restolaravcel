@@ -7,6 +7,7 @@ cd "$APP_DIR"
 # ── Configuration ──────────────────────────────────────────────────────────────
 REGISTRY_ENV="/home/andree/docker/.env"
 COMPOSE_FILE="/home/andree/docker/warung-restolaravcel/deploy/docker-compose.yaml"
+ENV_FILE="/home/andree/docker/warung-restolaravcel/.env"
 IMAGE="ghcr.io/andreejait/warung-restolaravcel"
 TAG="${1:-latest}"
 
@@ -32,15 +33,16 @@ echo "$REGISTRY_TOKEN" | docker login ghcr.io -u "$REGISTRY_USER" --password-std
 
 # ── Pull latest image ──────────────────────────────────────────────────────────
 echo "[deploy] Pulling ${IMAGE}:${TAG}..."
-docker compose -f "$COMPOSE_FILE" pull
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull
 
 # ── Ensure storage directories ───────────────────────────────────────────────
 echo "[deploy] Ensuring storage directories..."
 mkdir -p storage/app/public storage/framework/cache storage/framework/sessions storage/framework/views storage/logs
+chmod -R 777 storage
 
 # ── Start services ────────────────────────────────────────────────────────────
 echo "[deploy] Starting containers..."
-docker compose -f "$COMPOSE_FILE" up -d
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d
 
 # ── Wait for app to be ready ──────────────────────────────────────────────────
 echo "[deploy] Waiting for containers to start..."
@@ -48,16 +50,16 @@ sleep 5
 
 # ── Run migrations ────────────────────────────────────────────────────────────
 echo "[deploy] Running migrations..."
-docker compose -f "$COMPOSE_FILE" exec -T app php artisan migrate --force
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T app php artisan migrate --force
 
 # ── Run seeders ───────────────────────────────────────────────────────────────
 echo "[deploy] Running seeders..."
-docker compose -f "$COMPOSE_FILE" exec -T app php artisan db:seed --force
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T app php artisan db:seed --force
 
 # ── Cache optimization ───────────────────────────────────────────────────────
 echo "[deploy] Caching config and views..."
-docker compose -f "$COMPOSE_FILE" exec -T app php artisan config:cache
-docker compose -f "$COMPOSE_FILE" exec -T app php artisan view:cache
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T app php artisan config:cache
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T app php artisan view:cache
 
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 echo "[deploy] Cleaning up old images..."
