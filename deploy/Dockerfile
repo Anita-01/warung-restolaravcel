@@ -57,11 +57,6 @@ COPY --from=node-builder /app/public/build /app/public/build
 RUN chmod -R 775 /app/storage /app/bootstrap/cache \
     && chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
-# Laravel optimization
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
-
 # Nginx config
 COPY deploy/nginx.conf /etc/nginx/http.d/default.conf
 

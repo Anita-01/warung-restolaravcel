@@ -54,6 +54,11 @@ docker compose -f "$COMPOSE_FILE" exec -T app php artisan migrate --force
 echo "[deploy] Running seeders..."
 docker compose -f "$COMPOSE_FILE" exec -T app php artisan db:seed --force
 
+# ── Cache optimization ───────────────────────────────────────────────────────
+echo "[deploy] Caching config and views..."
+docker compose -f "$COMPOSE_FILE" exec -T app php artisan config:cache
+docker compose -f "$COMPOSE_FILE" exec -T app php artisan view:cache
+
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 echo "[deploy] Cleaning up old images..."
 docker image prune -f >/dev/null 2>&1 || true
