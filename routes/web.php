@@ -38,9 +38,10 @@ Route::get('/queue-data', [ReservationController::class, 'queueData']);
 Route::get('/reservation/{id}', [ReservationController::class, 'detailReservation'])->name('reservation.detail');
 Route::get('/invoice/{id}', [ReservationController::class, 'downloadInvoice'])->name('invoice.download');
 Route::view('/trace', 'user.trace')->name('trace');
-Route::get('/trace-order', function () {return view('user.trace-form');})->name('trace.order');
-Route::post('/trace-confirm',[ReservationController::class, 'traceOrder'])->name('trace.confirm');
-Route::get('/product', [ProductController::class, 'viewMenu']) ->name('menu');
+Route::get('/trace-order', function () {
+    return view('user.trace-form'); })->name('trace.order');
+Route::post('/trace-confirm', [ReservationController::class, 'traceOrder'])->name('trace.confirm');
+Route::get('/product', [ProductController::class, 'viewMenu'])->name('menu');
 Route::get('/menu/{id}', [ProductController::class, 'show'])->name('menu.detail');
 
 Route::get('/products/add', [ProductController::class, 'add'])->name('products.add');
@@ -51,7 +52,7 @@ Route::post('/login', [LoginAdminController::class, 'login']);
 Route::get('/logout', [LoginAdminController::class, 'logout'])->name('logout');
 
 
- Route::get('/admin/orders/search', [ReservationAdminController::class, 'search'])->name('orders.search');
+Route::get('/admin/orders/search', [ReservationAdminController::class, 'search'])->name('orders.search');
 
 /// routeadmin
 
@@ -75,10 +76,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/orders/{id}', [ReservationAdminController::class, 'show'])
         ->name('orders.show');
 
-   
+
 
     Route::post('/admin/orders/{id}/status', [ReservationAdminController::class, 'updateStatusAjax'])
-    ->name('orders.updateStatusAjax');
+        ->name('orders.updateStatusAjax');
 
     Route::get('/admin/report', [ReservationAdminController::class, 'report'])
         ->name('report');

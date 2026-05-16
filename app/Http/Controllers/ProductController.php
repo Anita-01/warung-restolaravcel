@@ -9,53 +9,53 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    
-   
+
+
     public function index()
     {
         $products = Product::latest()->paginate(10);
 
-    return view('admin.CRUDMenu.viewmenuindex', compact('products'));
+        return view('admin.CRUDMenu.viewmenuindex', compact('products'));
     }
 
-  
+
     public function add()
     {
         $categories = Category::all();
         return view('admin.CRUDMenu.addmenu', compact('categories'));
     }
 
-  
-public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required',
-        'category_id' => 'required',
-        'qty' => 'required',
-        'price' => 'required',
-        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
-    ]);
 
-    $imagePath = null;
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'category_id' => 'required',
+            'qty' => 'required',
+            'price' => 'required',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+        ]);
 
-    if ($request->hasFile('image')) {
-        $imagePath = $request->file('image')
-            ->store('products', 'public');
+        $imagePath = null;
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')
+                ->store('products', 'public');
+        }
+
+        Product::create([
+            'name' => $request->name,
+            'category_id' => $request->category_id,
+            'qty' => $request->qty,
+            'price' => $request->price,
+            'image' => $imagePath
+        ]);
+
+        return redirect()
+            ->route('products.index')
+            ->with('success', 'Product berhasil ditambahkan');
     }
 
-    Product::create([
-        'name' => $request->name,
-        'category_id' => $request->category_id,
-        'qty' => $request->qty,
-        'price' => $request->price,
-        'image' => $imagePath
-    ]);
-
-    return redirect()
-        ->route('products.index')
-        ->with('success', 'Product berhasil ditambahkan');
-}
-  
     public function edit($id)
     {
         $product = Product::with('category')->findOrFail($id);
@@ -64,67 +64,67 @@ public function store(Request $request)
         return view('admin.CRUDMenu.editmenu', compact('product', 'categories'));
     }
 
-public function updateProduct(Request $request)
-{
-    $request->validate([
-        'id' => 'required',
-        'name' => 'required',
-        'category_id' => 'required',
-        'qty' => 'required',
-        'price' => 'required',
-        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
-    ]);
+    public function updateProduct(Request $request)
+    {
+        $request->validate([
+            'id' => 'required',
+            'name' => 'required',
+            'category_id' => 'required',
+            'qty' => 'required',
+            'price' => 'required',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+        ]);
 
-    $product = Product::findOrFail($request->id);
+        $product = Product::findOrFail($request->id);
 
-    $data = [
-        'name' => $request->name,
-        'category_id' => $request->category_id,
-        'qty' => $request->qty,
-        'price' => $request->price,
-    ];
+        $data = [
+            'name' => $request->name,
+            'category_id' => $request->category_id,
+            'qty' => $request->qty,
+            'price' => $request->price,
+        ];
 
 
-    if ($request->hasFile('image')) {
+        if ($request->hasFile('image')) {
 
-       
-        if ($product->image && Storage::disk('public')->exists($product->image)) {
-            Storage::disk('public')->delete($product->image);
+
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
+
+
+            $data['image'] = $request->file('image')->store('products', 'public');
         }
 
-        
-        $data['image'] = $request->file('image')->store('products', 'public');
+        $product->update($data);
+
+        return redirect()
+            ->route('products.index')
+            ->with('success', 'Data product berhasil diupdate');
     }
-
-    $product->update($data);
-
-    return redirect()
-        ->route('products.index')
-        ->with('success', 'Data product berhasil diupdate');
-}
     public function search(Request $request)
-{
-    $key = $request->key;
+    {
+        $key = $request->key;
 
-    $query = Product::with('category')
-        ->latest(); 
+        $query = Product::with('category')
+            ->latest();
 
-    if ($key) {
-        $query->where('name', 'like', '%' . $key . '%');
+        if ($key) {
+            $query->where('name', 'like', '%' . $key . '%');
+        }
+
+        $products = $query->paginate(10);
+
+        return response()->json([
+            'data' => $products->items(),
+            'from' => $products->firstItem(),
+            'to' => $products->lastItem(),
+            'total' => $products->total(),
+            'links' => $products->links()->render()
+        ]);
     }
 
-    $products = $query->paginate(10);
 
-    return response()->json([
-        'data' => $products->items(),
-        'from' => $products->firstItem(),
-        'to' => $products->lastItem(),
-        'total' => $products->total(),
-        'links' => $products->links()->render()
-    ]);
-}
-
-    
     public function destroy($id)
     {
         Product::destroy($id);
@@ -135,37 +135,38 @@ public function updateProduct(Request $request)
         ]);
     }
 
-    public function totalPrice(Request $request){
+    public function totalPrice(Request $request)
+    {
         $total = $request->total_price;
     }
 
 
     public function viewMenu()
-{
-    $products = Product::with('category')->get();
+    {
+        $products = Product::with('category')->get();
 
-    return view('user.menu', compact('products'));
-}
+        return view('user.menu', compact('products'));
+    }
 
-  public function about()
-{
+    public function about()
+    {
 
-    return view('user.about');
-}
-
-
- public function service()
-{
-
-    return view('user.service');
-}
+        return view('user.about');
+    }
 
 
-public function show($id)
-{
-    $product = Product::findOrFail($id);
+    public function service()
+    {
 
-    return view('user.detailmenu', compact('product'));
-}
-    
+        return view('user.service');
+    }
+
+
+    public function show($id)
+    {
+        $product = Product::findOrFail($id);
+
+        return view('user.detailmenu', compact('product'));
+    }
+
 }

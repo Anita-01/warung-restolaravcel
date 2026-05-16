@@ -17,9 +17,9 @@ class ReservationController extends Controller
     public function makeReservation(Request $request)
     {
         $request->validate([
-            'name'  => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'email' => 'required|email',
-            'date'  => 'required|date'
+            'date' => 'required|date'
         ]);
 
         $selectedDate = Carbon::parse($request->date)->seconds(0);
@@ -70,7 +70,8 @@ class ReservationController extends Controller
                 foreach ($filteredProducts as $productId => $qty) {
                     $product = $productsDB[$productId] ?? null;
 
-                    if (!$product) continue;
+                    if (!$product)
+                        continue;
 
                     if ($qty > $product->qty) {
                         throw new \Exception(
@@ -80,13 +81,13 @@ class ReservationController extends Controller
                 }
 
                 $reservation = Reservation::create([
-                    'invoice'          => $this->generateInvoice(),
-                    'name'             => $request->name,
-                    'email'            => $request->email,
+                    'invoice' => $this->generateInvoice(),
+                    'name' => $request->name,
+                    'email' => $request->email,
                     'reservation_date' => $request->date,
-                    'total_price'      => 0,
-                    'queue_number'     => $nextQueue,
-                    'status'           => 'pending',
+                    'total_price' => 0,
+                    'queue_number' => $nextQueue,
+                    'status' => 'pending',
                 ]);
 
                 $total = 0;
@@ -99,12 +100,12 @@ class ReservationController extends Controller
 
                     ReservationItem::create([
                         'reservation_id' => $reservation->id,
-                        'product_id'     => $productId,
-                        'quantity'       => $qty,
-                        'price'          => $product->price,
+                        'product_id' => $productId,
+                        'quantity' => $qty,
+                        'price' => $product->price,
                     ]);
 
-                    
+
                 }
 
                 $reservation->update([
@@ -114,10 +115,10 @@ class ReservationController extends Controller
                 $estimate = $nextQueue * 5;
 
                 return redirect()->back()->with([
-                    'success'        => 'Berhasil reservasi!',
+                    'success' => 'Berhasil reservasi!',
                     'reservation_id' => $reservation->id,
-                    'queue_number'   => 'A' . str_pad($nextQueue, 3, '0', STR_PAD_LEFT),
-                    'estimate'       => $estimate,
+                    'queue_number' => 'A' . str_pad($nextQueue, 3, '0', STR_PAD_LEFT),
+                    'estimate' => $estimate,
                 ]);
             });
 
@@ -128,57 +129,57 @@ class ReservationController extends Controller
         }
     }
     public function queueData()
-{
-    $today = now()->toDateString();
+    {
+        $today = now()->toDateString();
 
 
-    $current = Reservation::whereDate('created_at', $today)
-        ->where('status', 'in_preparation')
-        ->orderBy('id') // lebih aman dari queue_number
-        ->first();
+        $current = Reservation::whereDate('created_at', $today)
+            ->where('status', 'in_preparation')
+            ->orderBy('id') // lebih aman dari queue_number
+            ->first();
 
 
-    $totalWaiting = Reservation::whereDate('created_at', $today)
-        ->whereIn('status', ['pending', 'confirmed'])
-        ->count();
+        $totalWaiting = Reservation::whereDate('created_at', $today)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->count();
 
-    return response()->json([
-       
-        'current_queue' => $current
-    ? (
-        str_starts_with((string)$current->queue_number, 'A')
-        ? $current->queue_number
-        : 'A' . str_pad((int)$current->queue_number, 3, '0', STR_PAD_LEFT)
-    )
-    : '-',
+        return response()->json([
 
-        'total_waiting' => $totalWaiting,
+            'current_queue' => $current
+                ? (
+                    str_starts_with((string) $current->queue_number, 'A')
+                    ? $current->queue_number
+                    : 'A' . str_pad((int) $current->queue_number, 3, '0', STR_PAD_LEFT)
+                )
+                : '-',
 
-        'estimate' => $totalWaiting * 5
-    ]);
-}
+            'total_waiting' => $totalWaiting,
 
-public function nextQueue()
-{
-    
-    $current = Reservation::where('status', 'in_preparation')->first();
-    if ($current) {
-        $current->update(['status' => 'served']);
+            'estimate' => $totalWaiting * 5
+        ]);
     }
 
-   
-    $next = Reservation::whereIn('status', ['pending', 'confirmed'])
-        ->orderBy('queue_number')
-        ->first();
+    public function nextQueue()
+    {
 
-    if ($next) {
-        $next->update(['status' => 'in_preparation']);
+        $current = Reservation::where('status', 'in_preparation')->first();
+        if ($current) {
+            $current->update(['status' => 'served']);
+        }
+
+
+        $next = Reservation::whereIn('status', ['pending', 'confirmed'])
+            ->orderBy('queue_number')
+            ->first();
+
+        if ($next) {
+            $next->update(['status' => 'in_preparation']);
+        }
+
+        return response()->json(['success' => true]);
     }
 
-    return response()->json(['success' => true]);
-}
-
-        public function detailReservation($id)
+    public function detailReservation($id)
     {
         $reservation = Reservation::with('items.product')
             ->findOrFail($id);
@@ -200,7 +201,7 @@ public function nextQueue()
     {
         $request->validate([
             'antrian' => 'required',
-            'phone'   => 'required|email',
+            'phone' => 'required|email',
         ]);
 
         $reservation = Reservation::with('items.product')

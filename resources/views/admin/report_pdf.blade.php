@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>Laporan Reservasi</title>
@@ -20,11 +21,14 @@
             border-collapse: collapse;
         }
 
-        table, th, td {
+        table,
+        th,
+        td {
             border: 1px solid #000;
         }
 
-        th, td {
+        th,
+        td {
             padding: 6px;
             text-align: center;
         }
@@ -39,11 +43,11 @@
 
     <h2>LAPORAN RESERVASI (COMPLETED)</h2>
 
-@if($month)
-    <p style="text-align:center;">
-        Bulan: {{ \Carbon\Carbon::parse($month)->format('F Y') }}
-    </p>
-@endif
+    @if($month)
+        <p style="text-align:center;">
+            Bulan: {{ \Carbon\Carbon::parse($month)->format('F Y') }}
+        </p>
+    @endif
 
     <table>
         <thead>
@@ -61,29 +65,29 @@
             @php $grandTotal = 0; @endphp
 
             @foreach($data as $res)
-            <tr>
-                <td>{{ $loop->iteration }}</td>
+                <tr>
+                    <td>{{ $loop->iteration }}</td>
 
-                <td>
-                    {{ \Carbon\Carbon::parse($res->reservation_date)->format('d M Y') }}
-                </td>
+                    <td>
+                        {{ \Carbon\Carbon::parse($res->reservation_date)->format('d M Y') }}
+                    </td>
 
-                <td class="text-left">{{ $res->name }}</td>
+                    <td class="text-left">{{ $res->name }}</td>
 
-                <td>{{ $res->invoice }}</td>
+                    <td>{{ $res->invoice }}</td>
 
-                <td class="text-left">
-                    @foreach($res->items as $item)
-                        {{ $item->product->name }} (x{{ $item->quantity }})<br>
-                    @endforeach
-                </td>
+                    <td class="text-left">
+                        @foreach($res->items as $item)
+                            {{ $item->product->name }} (x{{ $item->quantity }})<br>
+                        @endforeach
+                    </td>
 
-                <td>
-                    Rp {{ number_format($res->total_price, 0, ',', '.') }}
-                </td>
-            </tr>
+                    <td>
+                        Rp {{ number_format($res->total_price, 0, ',', '.') }}
+                    </td>
+                </tr>
 
-            @php $grandTotal += $res->total_price; @endphp
+                @php $grandTotal += $res->total_price; @endphp
             @endforeach
 
             <!-- TOTAL -->
@@ -100,4 +104,5 @@
     </table>
 
 </body>
+
 </html>

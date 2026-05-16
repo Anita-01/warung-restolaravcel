@@ -20,14 +20,14 @@ class LoginAdminController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-           $request->session()->regenerate();
+            $request->session()->regenerate();
 
-    if (Auth::user()->role == 'admin') {
-        return redirect()->route('dashboardadmin');
-    }
+            if (Auth::user()->role == 'admin') {
+                return redirect()->route('dashboardadmin');
+            }
 
-    return redirect()->route('index');
-}
+            return redirect()->route('index');
+        }
 
         return back()->with('error', 'Name atau password salah');
     }

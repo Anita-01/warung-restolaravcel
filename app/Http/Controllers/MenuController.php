@@ -10,14 +10,10 @@ class MenuController extends Controller
     public function index()
     {
         $categories = Category::all();
-      
-
-    return view('layouts.welcome', compact('categories'));
-  
-}
 
 
+        return view('layouts.welcome', compact('categories'));
 
+    }
 
 }
-

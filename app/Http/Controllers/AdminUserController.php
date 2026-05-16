@@ -23,30 +23,30 @@ class AdminUserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => 'required',
-            'email'    => 'required|email|unique:users,email',
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6'
         ]);
 
         User::create([
-            'name'      => $request->name,
-            'email'     => $request->email,
+            'name' => $request->name,
+            'email' => $request->email,
             'password' => Hash::make($request->password),
             'password_plain' => $request->password,
-            'role'      => 'admin',
+            'role' => 'admin',
             'is_active' => 1
         ]);
 
         if ($request->ajax()) {
-        return response()->json([
-            'success' => true,
-            'message' => 'Admin berhasil ditambahkan'
-        ]);
-    }
+            return response()->json([
+                'success' => true,
+                'message' => 'Admin berhasil ditambahkan'
+            ]);
+        }
 
-    return redirect()->route('admin.users')
-        ->with('success', 'Admin berhasil ditambahkan');
-}
+        return redirect()->route('admin.users')
+            ->with('success', 'Admin berhasil ditambahkan');
+    }
     public function edit($id)
     {
         $admin = User::findOrFail($id);
@@ -59,7 +59,7 @@ class AdminUserController extends Controller
         $admin = User::findOrFail($id);
 
         $request->validate([
-            'name'  => 'required',
+            'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $admin->id,
             'password' => 'nullable|min:6'
         ]);
@@ -79,13 +79,13 @@ class AdminUserController extends Controller
 
     public function destroy($id)
     {
-       $admin = User::findOrFail($id);
-    $admin->delete();
+        $admin = User::findOrFail($id);
+        $admin->delete();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Admin berhasil dihapus'
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin berhasil dihapus'
+        ]);
+    }
 
 }
