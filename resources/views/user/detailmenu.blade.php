@@ -7,8 +7,8 @@
             <div class="col-md-6 text-center">
 
                 {{-- IMAGE --}}
-                @if($product->image && file_exists(public_path('img/' . $product->image)))
-                    <img src="{{ asset('img/' . $product->image) }}" class="img-fluid rounded mb-4"
+                @if($product->image && file_exists(public_path('storage/' . $product->image)))
+                    <img src="{{ asset('storage/' . $product->image) }}" class="img-fluid rounded mb-4"
                         style="max-height:300px; object-fit:cover;" alt="{{ $product->name }}">
                 @else
                     <img src="{{ asset('img/no-image.png') }}" class="img-fluid rounded mb-4"

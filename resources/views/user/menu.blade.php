@@ -25,7 +25,7 @@
                         <div class="position-relative bg-light overflow-hidden">
 
                             @if($product->image)
-                                <img class="img-fluid w-100" src="{{ asset('img/' . $product->image) }}" alt="{{ $product->name }}"
+                                <img class="img-fluid w-100" src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}"
                                     style="height: 220px; object-fit: cover;">
                             @else
                                 <img class="img-fluid w-100" src="{{ asset('img/no-image.png') }}" alt="No Image"
