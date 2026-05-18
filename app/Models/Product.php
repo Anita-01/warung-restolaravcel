@@ -21,14 +21,15 @@ class Product extends Model
         return $this->belongsTo(Category::class, 'category_id');
     }
 
-    public function reservations(){
-         return $this->hasMany(Reservation::class);
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
     }
 
     public function reservationItems()
-{
-    return $this->hasMany(ReservationItem::class);
-}
+    {
+        return $this->hasMany(ReservationItem::class);
+    }
 
 
 

@@ -3,74 +3,152 @@
 @section('content')
 <div class="container py-5">
 
-    <h2 class="mb-4">Detail Order</h2>
+    <h2 class="mb-4 fw-bold">Detail Order</h2>
 
     <!-- INFO ANTRIAN -->
-    <div class="g-dark text-white">
-        <h5>Nomor Antrian: {{ $reservation->queue_number }}</h5>
-        <h5>Estimasi: {{ $reservation->queue_number * 5 }} menit</h5>
-        <h5>Invoice: {{ $reservation->invoice }} </h5>
+    <div class="bg-dark text-white p-4 rounded mb-4 shadow">
+        <h4 class="fw-bold text-warning">
+            Nomor Antrian: 
+            A{{ str_pad($reservation->queue_number, 3, '0', STR_PAD_LEFT) }}
+        </h4>
+
+        <p class="mb-1">
+            Estimasi Awal: 
+            <span class="text-info fw-bold">
+                {{ $reservation->queue_number * 5 }} menit
+            </span>
+        </p>
+
+        <p class="mb-1">Invoice: {{ $reservation->invoice }}</p>
+
+        <p>
+            Status: 
+            <span class="badge bg-success">
+                {{ $reservation->status }}
+            </span>
+        </p>
     </div>
 
     <!-- REALTIME -->
-    <div class="mb-4 p-3 bg-secondary text-white rounded">
-        <h5>Antrian Saat Ini: <span id="currentQueue">-</span></h5>
-        <h5>Jumlah Menunggu: <span id="totalWaiting">0</span></h5>
-        <h5>Estimasi Waktu: <span id="waitingTime">0 menit</span></h5>
+    <div class="mb-4 p-4 bg-secondary text-white rounded shadow text-center">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <small>Antrian Saat Ini</small><br>
+                <h4 id="currentQueue" class="fw-bold text-warning">-</h4>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <small>Jumlah Menunggu</small><br>
+                <h4 id="totalWaiting" class="fw-bold text-light">0</h4>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <small>Estimasi Waktu</small><br>
+                <h4 id="waitingTime" class="fw-bold text-info">0 menit</h4>
+            </div>
+        </div>
     </div>
 
     <!-- TABLE ORDER -->
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Produk</th>
-                <th>Harga</th>
-                <th>Qty</th>
-                <th>Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php $total = 0; @endphp
+    <div class="card shadow">
+        <div class="card-body p-0">
+            <table class="table table-bordered mb-0">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th>Produk</th>
+                        <th>Harga</th>
+                        <th>Qty</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
 
-            @foreach($reservation->items as $item)
-                @php $subtotal = $item->price * $item->quantity; @endphp
-                @php $total += $subtotal; @endphp
+                <tbody>
+                    @php $total = 0; @endphp
 
-                <tr>
-                    <td>{{ $item->product->name }}</td>
-                    <td>Rp {{ number_format($item->price) }}</td>
-                    <td>{{ $item->quantity }}</td>
-                    <td>Rp {{ number_format($subtotal) }}</td>
-                </tr>
-            @endforeach
-        </tbody>
+                    @foreach($reservation->items as $item)
+                        @php 
+                            $subtotal = $item->price * $item->quantity; 
+                            $total += $subtotal;
+                        @endphp
 
-        <tfoot>
-            <tr>
-                <th colspan="3">Total</th>
-                <th>Rp {{ number_format($total) }}</th>
-            </tr>
-        </tfoot>
-    </table>
-    <a href="{{ route('invoice.download', $reservation->id) }}" 
-   class="btn btn-success mt-3">
-   Download Invoice PDF
-</a>
+                        <tr>
+                            <td>{{ $item->product->name }}</td>
+                            <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                            <td class="text-center">{{ $item->quantity }}</td>
+                            <td>Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+
+                <tfoot>
+                    <tr class="fw-bold">
+                        <td colspan="3" class="text-end">Total</td>
+                        <td>Rp {{ number_format($total, 0, ',', '.') }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- BUTTON -->
+    <div class="mt-4 d-flex gap-2">
+        <a href="{{ route('invoice.download', $reservation->id) }}" 
+           class="btn btn-success">
+           Download Invoice PDF
+        </a>
+
+        <a href="{{ route('index') }}" class="btn btn-secondary">
+            ← Kembali
+        </a>
+    </div>
+
 </div>
+@endsection
+
 @section('scripts')
 <script>
+const userQueue = {{ $reservation->queue_number }};
+
+// format A001
+function formatQueue(num) {
+    return 'A' + String(num).padStart(3, '0');
+}
+
 function loadQueueData() {
     fetch('/queue-data')
         .then(res => res.json())
         .then(data => {
-            document.getElementById('currentQueue').innerText = data.current_queue;
-            document.getElementById('totalWaiting').innerText = data.total_waiting;
-            document.getElementById('waitingTime').innerText = (data.total_waiting * 5) + " menit";
+
+            // 🔥 ambil angka dari backend
+            let current = parseInt(data.current_queue);
+
+            // tampilkan current queue (AMAN)
+            if (!current || isNaN(current)) {
+                document.getElementById('currentQueue').innerText = '-';
+            } else {
+                document.getElementById('currentQueue').innerText = formatQueue(current);
+            }
+
+            // jumlah menunggu
+            document.getElementById('totalWaiting').innerText =
+                data.total_waiting ?? 0;
+
+            // estimasi waktu
+            let remaining = userQueue - (current || 0);
+            let estimate = remaining > 0 ? remaining * 5 : 0;
+
+            document.getElementById('waitingTime').innerText =
+                estimate + " menit";
+        })
+        .catch(err => {
+            console.error('Error ambil queue:', err);
         });
 }
 
+// load pertama
 loadQueueData();
+
+// refresh tiap 5 detik
 setInterval(loadQueueData, 5000);
 </script>
-@endsection
 @endsection

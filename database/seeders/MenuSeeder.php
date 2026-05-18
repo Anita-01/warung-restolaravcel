@@ -10,7 +10,7 @@ class MenuSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Masukkan Data Kategori (pakai firstOrCreate supaya tidak duplikat dengan CategorySeeder)
+        // 1. Masukkan Data Kategori
         $breakfast = Category::firstOrCreate(
             ['name' => 'Breakfast'],
             ['icon' => 'fa-coffee', 'subtitle' => 'Popular']
@@ -30,27 +30,28 @@ class MenuSeeder extends Seeder
         // Menu untuk Breakfast
         Menu::create([
             'category_id' => $breakfast->id,
-            'name' => 'Chicken Burger Breakfast',
-            'description' => 'Ipsum ipsum clita erat amet dolor justo diam',
-            'price' => 115,
+            'name' => 'Paket Sarapan Nusantara',
+            'description' => 'Awali harimu dengan hidangan khas Indonesia yang hangat, lezat, dan mengenyangkan.
+                                dan pastinya murah meriah',
+            'price' => 10000,
             'image' => 'menu-1.jpg'
         ]);
 
         // Menu untuk Lunch
         Menu::create([
             'category_id' => $lunch->id,
-            'name' => 'Special Lunch Burger',
-            'description' => 'Ipsum ipsum clita erat amet dolor justo diam',
-            'price' => 125,
+            'name' => 'Paket Makan Siang Hemat',
+            'description' => 'Menu lengkap dengan rasa autentik, porsi pas, dan harga terjangkau untuk menemani aktivitas siangmu.',
+            'price' => 20000,
             'image' => 'menu-2.jpg'
         ]);
 
         // Menu untuk Dinner
         Menu::create([
             'category_id' => $dinner->id,
-            'name' => 'Lovely Dinner Pack',
-            'description' => 'Ipsum ipsum clita erat amet dolor justo diam',
-            'price' => 150,
+            'name' => 'Menu Makan Malam Spesial',
+            'description' => 'Nikmati hidangan malam yang lezat dan menggugah selera, cocok untuk santap bersama keluarga.',
+            'price' => 25000,
             'image' => 'menu-3.jpg'
         ]);
     }

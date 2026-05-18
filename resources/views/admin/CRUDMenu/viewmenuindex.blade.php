@@ -1,148 +1,120 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    #pagination svg {
+        width: 20px;
+        height: 20px;
+    }
+    #pagination nav div:first-child {
+        display: none; 
+    }
+
+    .pagination .page-link {
+        color: #007bff !important;
+        background-color: #fff !important;
+        border: 1px solid #dee2e6 !important;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #007bff !important;
+        border-color: #007bff !important;
+        color: #fff !important;
+    }
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d !important;
+    }
+</style>
+
 <div class="container mt-4">
 
-    <h3 class="mb-3">List Products</h3>
+    {{-- HEADER --}}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">List Products</h3>
+        <a href="{{ route('dashboardadmin') }}" class="btn btn-secondary btn-sm">
+            ← Kembali
+        </a>
+    </div>
 
-    
-    <input type="text" id="search" class="form-control mb-3" placeholder="Search product...">
+    {{-- SEARCH --}}
+    <div class="mb-3">
+        <input type="text" id="search" class="form-control" placeholder="Search product...">
+    </div>
 
     {{-- TABLE --}}
-    <table class="table table-bordered table-hover">
-        <thead class="table-dark text-center">
-            <tr>
-                <th>#</th>
-                <th>Nama</th>
-                <th>Kategori</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th>Action</th>
-            </tr>
-        </thead>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle bg-white">
+            <thead class="table-light text-center">
+                <tr>
+                    <th width="50">#</th>
+                    <th width="100">Foto</th>
+                    <th>Nama</th>
+                    <th>Kategori</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th width="180">Action</th>
+                </tr>
+            </thead>
 
-        <tbody id="tableBody">
-            @foreach($products as $p)
-            <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $p->name }}</td>
-        <td>
-   {{ $p->category->name ?? 'Tanpa Kategori' }}
-</td>
-                <td>{{ $p->qty }}</td>
-                <td>Rp {{ number_format($p->price,0,',','.') }}</td>
-                <td>
-                    <a href="{{ route('editmenu', $p->id) }}" class="btn btn-warning btn-sm">Edit</a>
+            <tbody id="tableBody">
+                @foreach($products as $p)
+                <tr>
+                    <td class="text-center">
+                        {{ ($products->currentPage() - 1) * $products->perPage() + $loop->iteration }}
+                    </td>
 
-                    <button class="btn btn-danger btn-sm btn-delete"
-                        data-id="{{ $p->id }}">
-                        Delete
-                    </button>
-                </td>
-                
+                    <td class="text-center">
+                        @if($p->image)
+                            <img src="{{ asset('storage/' . $p->image) }}" 
+                                 width="60" height="60"
+                                 style="object-fit: cover; border-radius: 5px;">
+                        @else
+                            <span class="text-muted small">No Image</span>
+                        @endif
+                    </td>
 
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+                    <td>{{ $p->name }}</td>
+                    <td>{{ $p->category->name ?? 'Uncategorized' }}</td>
+                    <td>{{ $p->qty }}</td>
+                    <td>Rp {{ number_format($p->price, 0, ',', '.') }}</td>
+
+                    <td class="text-center">
+                        <a href="{{ route('editmenu', $p->id) }}" 
+                           class="btn btn-warning btn-sm fw-bold text-dark">EDIT</a>
+
+                        <button class="btn btn-danger btn-sm fw-bold btn-delete" 
+                                data-id="{{ $p->id }}">
+                            DELETE
+                        </button>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    {{-- PAGINATION + INFO --}}
+    <div class="mt-3">
+        <div id="pagination">
+            {{ $products->links() }}
+        </div>
+
+        <div id="infoData" class="text-muted small mt-2">
+            Showing {{ $products->firstItem() ?? 0 }} 
+            to {{ $products->lastItem() ?? 0 }} 
+            of {{ $products->total() }} results
+        </div>
+    </div>
+
+    {{-- BUTTON BAWAH --}}
+    <div class="mt-3 d-flex gap-2">
+        <a href="{{ route('products.add') }}" class="btn btn-outline-warning fw-bold">
+            + ADD MENU
+        </a>
+
+        <a href="{{ route('dashboardadmin') }}" class="btn btn-secondary">
+            KEMBALI
+        </a>
+    </div>
 
 </div>
-<div>
-     <a href="{{ route('products.add') }}" class="btn btn-outline-primary">Add Menu</a>
-</div>
-@endsection
-
-@section('scripts')
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-let timer;
-
-// 🔍 SEARCH AJAX
-$('#search').on('keyup', function(){
-
-    clearTimeout(timer);
-    let key = $(this).val();
-
-    timer = setTimeout(function(){
-
-        $.ajax({
-            url: "/products/search",
-            method: "GET",
-            data: { key: key },
-
-            success: function(data){
-
-                let rows = '';
-
-                if(data.length === 0){
-                    rows = `<tr><td colspan="6" class="text-center">Data tidak ditemukan</td></tr>`;
-                } else {
-                    data.forEach(function(p, index){
-                        rows += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${p.name}</td>
-                            <td>${p.category ? p.category.name : 'Tanpa Kategori'}</td>
-                            <td>${p.qty}</td>
-                            <td>Rp ${Number(p.price || 0).toLocaleString()}</td>
-                            <td>
-                                <a href="/editmenu/${p.id}" class="btn btn-warning btn-sm">Edit</a>
-
-                                <button class="btn btn-danger btn-sm btn-delete"
-                                    data-id="${p.id}">
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                        `;
-                    });
-                }
-
-                $('#tableBody').html(rows);
-            }
-        });
-
-    }, 300);
-
-});
-
-$(document).on('click', '.btn-delete', function(){
-
-    let id = $(this).data('id');
-
-    Swal.fire({
-        title: 'Yakin hapus?',
-        text: "Data tidak bisa dikembalikan!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Ya, hapus!'
-    }).then((result) => {
-
-        if (result.isConfirmed) {
-
-            $.ajax({
-                url: "/products/" + id,
-                method: "POST",
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    _method: 'DELETE'
-                },
-
-                success: function(res){
-                    Swal.fire('Berhasil!', res.message, 'success');
-                    location.reload();
-                }
-            });
-
-        }
-    });
-
-});
-</script>
-
 @endsection

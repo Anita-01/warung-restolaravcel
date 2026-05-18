@@ -112,24 +112,70 @@
     max-height: 45px;
 }
 
+/* FORCE HEADER / NAVBAR SELALU TAMPIL */
+.navbar,
+.navbar-dark,
+.sticky-top.navbar-dark {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: sticky !important;
+    top: 0 !important;
+    width: 100% !important;
+    z-index: 99999 !important;
+    background: var(--dark) !important;
+}
+
+/* MOBILE / RESPONSIVE */
 @media (max-width: 991.98px) {
+    .navbar,
+    .navbar-dark,
     .sticky-top.navbar-dark {
-        position: relative;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: sticky !important;
+        top: 0 !important;
+        width: 100% !important;
+        z-index: 99999 !important;
+        background: var(--dark) !important;
+        padding: 15px 20px !important;
     }
 
-    .navbar-dark .navbar-collapse {
-        margin-top: 15px;
-        border-top: 1px solid rgba(255, 255, 255, .1)
+    .navbar-brand {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 
-    .navbar-dark .navbar-nav .nav-link,
-    .sticky-top.navbar-dark .navbar-nav .nav-link {
-        padding: 10px 0;
-        margin-left: 0;
+    .navbar-toggler {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        border: 1px solid rgba(255, 255, 255, .5) !important;
     }
 
-    .navbar-dark .navbar-brand img {
-        max-height: 45px;
+    .navbar-collapse {
+        width: 100% !important;
+        background: var(--dark) !important;
+        margin-top: 15px !important;
+        padding: 10px 0 !important;
+    }
+
+    .navbar-nav {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .navbar-nav .nav-link {
+        display: block !important;
+        color: #fff !important;
+        padding: 10px 0 !important;
+        margin-left: 0 !important;
     }
 }
 

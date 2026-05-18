@@ -6,14 +6,14 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 class UserController extends Controller
 {
-      public function index()
+    public function index()
     {
         $products = Product::all();
         return view('user.menu', compact('products'));
     }
     public function createreserved()
-{
-    $products = Product::all();
-    return view('user.reserved', compact('products'));
-}
+    {
+        $products = Product::all();
+        return view('user.reserved', compact('products'));
+    }
 }
