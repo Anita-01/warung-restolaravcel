@@ -98,6 +98,7 @@ class ReservationAdminController extends Controller
             $order->update([
                 'status' => $request->status
             ]);
+            // cek git controller aman
         });
 
         return response()->json([

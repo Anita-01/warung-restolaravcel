@@ -30,7 +30,7 @@ Route::get('/editmenu/{id}', [ProductController::class, 'edit'])->name('editmenu
 Route::post('/products/addmenu', [ProductController::class, 'store'])->name('addmenu');
 Route::post('/products/updateProduct', [ProductController::class, 'updateProduct'])->name('updateProduct');
 Route::get('/products/search', [ProductController::class, 'search'])->name('search');
-Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('destroy');;
 Route::get('/user/menu', [UserController::class, 'index'])->name('viewmenu');
 Route::get('/reserved', [UserController::class, 'createreserved'])->name('reserved');
 Route::post('/reservation', [ReservationController::class, 'makeReservation'])->name('reservation.store');
@@ -86,6 +86,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/admin/report/pdf', [ReservationAdminController::class, 'exportPdf'])
         ->name('report.pdf');
+
+
+        // commit ke master
 
 
 
