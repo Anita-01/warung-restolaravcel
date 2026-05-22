@@ -10,8 +10,8 @@
                 style="border-radius: 15px; overflow: hidden;">
                 <div class="p-5 w-100">
 
-                    <h5 class="text-primary text-center">Reservation</h5>
-                    <h1 class="text-white mb-4 text-center">Book A Table</h1>
+                    <h5 class="text-primary text-center">Dine-In Table</h5>
+                    <h1 class="text-white mb-4 text-center">Ambil Antrean & Pesan Menu</h1>
 
                     <form action="{{ route('reservation.store') }}" method="POST" id="reservationForm">
                         @csrf
@@ -28,6 +28,7 @@
                             </div>
 
                             <div class="col-md-12">
+                                   <h5 class="text-white mb-3">Rencana Jam Kedatangan</h5>
                                 <input type="datetime-local" name="date" id="dateInput"
                                     class="form-control @error('date') is-invalid @enderror" required>
                             </div>

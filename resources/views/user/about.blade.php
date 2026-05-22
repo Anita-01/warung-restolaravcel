@@ -1,28 +1,36 @@
 @extends('layouts.app')
 @section('content')
 
-<!-- About Start -->
 <div class="container-xxl py-5">
     <div class="container">
-        <div class="row g-5 align-items-center">
+        <div class="row g-5 align-items-start">
+            
             <div class="col-lg-6">
                 <div class="row g-3">
-                    <div class="col-6 text-start">
-                        <img class="img-fluid rounded w-100 wow zoomIn" data-wow-delay="0.1s" src="img/warung1.jpeg">
+                    <div class="col-6">
+                        <div class="ratio ratio-4x3">
+                            <img class="img-fluid rounded wow zoomIn" data-wow-delay="0.1s" src="img/warung1.jpeg" alt="Warung 1" style="object-fit: cover; width: 100%; height: 100%;">
+                        </div>
                     </div>
-                    <div class="col-6 text-start">
-                        <img class="img-fluid rounded w-75 wow zoomIn" data-wow-delay="0.3s" src="img/warung2.jpeg"
-                            style="margin-top: 25%;">
+                    <div class="col-6">
+                        <div class="ratio ratio-4x3">
+                            <img class="img-fluid rounded wow zoomIn" data-wow-delay="0.3s" src="img/warung2.jpeg" alt="Warung 2" style="object-fit: cover; width: 100%; height: 100%;">
+                        </div>
                     </div>
-                    <div class="col-6 text-end">
-                        <img class="img-fluid rounded w-75 wow zoomIn" data-wow-delay="0.5s" src="img/warung3.jpeg">
+                    <div class="col-6">
+                        <div class="ratio ratio-4x3">
+                            <img class="img-fluid rounded wow zoomIn" data-wow-delay="0.5s" src="img/warung3.jpeg" alt="Warung 3" style="object-fit: cover; width: 100%; height: 100%;">
+                        </div>
                     </div>
-                    <div class="col-6 text-end">
-                        <img class="img-fluid rounded w-100 wow zoomIn" data-wow-delay="0.7s" src="img/about-4.jpg">
+                    <div class="col-6">
+                        <div class="ratio ratio-4x3">
+                            <img class="img-fluid rounded wow zoomIn" data-wow-delay="0.7s" src="img/warung4.jpeg" alt="Warung 4" style="object-fit: cover; width: 100%; height: 100%;">
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
+            
+            <div class="col-lg-6 pt-lg-4">
                 <h5 class="section-title ff-secondary text-start text-primary fw-normal">About Us</h5>
                 <h1 class="mb-4">Welcome to <i class="fa fa-utensils text-primary me-2"></i>Warung Muslim Lia</h1>
                 <p class="mb-4">Warung Muslim Lia, adalah salah satu UMKM yang berlokasi di Balige sebuah Kota yang
@@ -31,6 +39,7 @@
                     lontong sayur, nasi goreng kampung, sayur-sayuran dll</p>
                 <p class="mb-4">Warung ini menyediakan beragam variasi menu dan sudah terverifikasi halal dengan harga
                     yang bersahabat tetapi kualitas yang memuaskan</p>
+                
                 <div class="row g-4 mb-4">
                     <div class="col-sm-6">
                         <div class="d-flex align-items-center border-start border-5 border-primary px-3">
@@ -53,10 +62,9 @@
                 </div>
                 <a class="btn btn-primary py-3 px-5 mt-2" href="">Read More</a>
             </div>
+
         </div>
     </div>
 </div>
 
-</body>
-
-</html>
+@endsection

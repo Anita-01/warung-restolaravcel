@@ -118,7 +118,7 @@
                         </div>
 
                         <div class="col-6 text-end">
-                            <img class="img-fluid rounded w-100 wow zoomIn" data-wow-delay="0.7s" src="img/about-4.jpg">
+                            <img class="img-fluid rounded w-100 wow zoomIn" data-wow-delay="0.7s" src="img/warung4.jpeg">
                         </div>
 
                     </div>

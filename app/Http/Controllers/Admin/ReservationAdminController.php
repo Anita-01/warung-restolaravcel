@@ -182,7 +182,7 @@ class ReservationAdminController extends Controller
                 ->whereYear('reservation_date', \Carbon\Carbon::parse($month)->year);
         }
 
-        $data = $query->get();
+       $data = $query->get();
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.report_pdf', compact('data', 'month'));
 

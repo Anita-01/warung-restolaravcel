@@ -103,27 +103,27 @@ class ProductController extends Controller
             ->route('products.index')
             ->with('success', 'Data product berhasil diupdate');
     }
-    public function search(Request $request)
-    {
-        $key = $request->key;
+  public function search(Request $request)
+{
+    $key = $request->key;
 
-        $query = Product::with('category')
-            ->latest();
+    $query = Product::with('category')->latest();
 
-        if ($key) {
-            $query->where('name', 'like', '%' . $key . '%');
-        }
-
-        $products = $query->paginate(10);
-
-        return response()->json([
-            'data' => $products->items(),
-            'from' => $products->firstItem(),
-            'to' => $products->lastItem(),
-            'total' => $products->total(),
-            'links' => $products->links()->render()
-        ]);
+    if ($key) {
+        $query->where('name', 'like', '%' . $key . '%');
     }
+
+    $products = $query->paginate(10)
+        ->appends(['key' => $key]) 
+        ->withPath('/products/search'); 
+
+    return response()->json([
+        'data' => $products->items(),
+        'links' => (string) $products->links(),
+        'current_page' => $products->currentPage(),
+        'total' => $products->total()
+    ]);
+}
 
 
     public function destroy($id)
