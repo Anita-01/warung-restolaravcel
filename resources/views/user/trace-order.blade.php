@@ -50,26 +50,19 @@
                     </ul>
 
                     <p>Status:
-
-                        @if($reservation->status == 'pending')
-                            <span class="badge bg-warning">Pending</span>
-
-                        @elseif($reservation->status == 'confirmed')
-                            <span class="badge bg-info">Confirmed</span>
-
-                        @elseif($reservation->status == 'in_preparation')
-                            <span class="badge bg-primary">In Preparation</span>
-
-                        @elseif($reservation->status == 'served')
-                            <span class="badge bg-success">Served</span>
-
-                        @elseif($reservation->status == 'completed')
-                            <span class="badge bg-dark">Completed</span>
-
-                        @else
-                            <span class="badge bg-danger">Cancelled</span>
-                        @endif
-
+                        <span 
+                            id="status-badge-{{ $reservation->invoice }}" 
+                            class="badge 
+                                @if($reservation->status == 'pending') bg-warning
+                                @elseif($reservation->status == 'confirmed') bg-info
+                                @elseif($reservation->status == 'in_preparation') bg-primary
+                                @elseif($reservation->status == 'served') bg-success
+                                @elseif($reservation->status == 'completed') bg-dark
+                                @else bg-danger
+                                @endif
+                            ">
+                            {{ ucfirst(str_replace('_', ' ', $reservation->status)) }}
+                        </span>
                     </p>
 
                 </div>
@@ -87,3 +80,45 @@
 </div>
 
 @endsection
+
+
+<script>
+    console.log("DETAIL PAGE SCRIPT JALAN");
+
+    function updateStatus(invoice) {
+        fetch(`/api/reservation-status/${invoice}`)
+            .then(res => res.json())
+            .then(data => {
+
+                let badge = document.getElementById(`status-badge-${invoice}`);
+                if (!badge || !data.status) return;
+
+                let status = data.status;
+
+                badge.className = "badge";
+
+                if (status === 'pending') badge.classList.add('bg-warning');
+                else if (status === 'confirmed') badge.classList.add('bg-info');
+                else if (status === 'in_preparation') badge.classList.add('bg-primary');
+                else if (status === 'served') badge.classList.add('bg-success');
+                else if (status === 'completed') badge.classList.add('bg-dark');
+                else badge.classList.add('bg-danger');
+
+                badge.innerHTML = status.replace('_', ' ');
+            });
+    }
+
+    const invoices = [
+        @foreach($reservations as $reservation)
+            "{{ $reservation->invoice }}",
+        @endforeach
+    ];
+
+    // langsung update
+    invoices.forEach(inv => updateStatus(inv));
+
+    // auto refresh
+    setInterval(() => {
+        invoices.forEach(inv => updateStatus(inv));
+    }, 5000);
+</script>

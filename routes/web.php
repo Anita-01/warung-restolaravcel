@@ -14,7 +14,13 @@ Route::get('/', [MenuController::class, 'index'])->name('index');
 
 Route::get('/about', [ProductController::class, 'about'])->name('about');
 Route::get('/service', [ProductController::class, 'service'])->name('service');
+Route::get('/api/reservation-status/{invoice}', function ($invoice) {
+    $reservation = App\Models\Reservation::where('invoice', $invoice)->first();
 
+    return response()->json([
+        'status' => $reservation->status
+    ]);
+});
 
 
 
