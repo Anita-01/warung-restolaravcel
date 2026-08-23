@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->string('product_name');
             $table->integer('quantity')->default(0);
             $table->integer('total_price')->default(0);
-            $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'confirmed', 'canceled'])->default('pending');
             $table->timestamps();
         });
     }

@@ -19,8 +19,7 @@ protected $fillable = [
 
 ];
 
-
-       public function items()
+        public function items()
     {
         return $this->hasMany(ReservationItem::class, 'reservation_id');
     }

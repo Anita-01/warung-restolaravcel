@@ -1,3 +1,8 @@
+@php
+    $hideHeader = true;
+    $hideFooter = true;
+@endphp
+
 @extends('layouts.app')
 
 @section('content')

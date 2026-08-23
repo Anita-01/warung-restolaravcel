@@ -11,7 +11,6 @@ class MenuController extends Controller
     {
         $categories = Category::all();
 
-
         return view('layouts.welcome', compact('categories'));
 
     }
