@@ -5,20 +5,14 @@
 
     <h3>Edit Product</h3>
 
-    <form action="{{ route('updateProduct') }}" 
-          method="POST" 
-          enctype="multipart/form-data">
+    <form action="{{ route('updateProduct') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
         <input type="hidden" name="id" value="{{ $product->id }}">
 
         <div class="mb-3">
             <label>Nama</label>
-            <input type="text" 
-                   name="name" 
-                   class="form-control" 
-                   value="{{ $product->name }}" 
-                   required>
+            <input type="text" name="name" class="form-control" value="{{ $product->name }}" required>
         </div>
 
         <div class="mb-3">
@@ -33,25 +27,18 @@
                         {{ $cat->name }}
                     </option>
                 @endforeach
+
             </select>
         </div>
 
         <div class="mb-3">
             <label>Qty</label>
-            <input type="number" 
-                   name="qty" 
-                   class="form-control" 
-                   value="{{ $product->qty }}" 
-                   required>
+            <input type="number" name="qty" class="form-control" value="{{ $product->qty }}" required>
         </div>
 
         <div class="mb-3">
             <label>Price</label>
-            <input type="number" 
-                   name="price" 
-                   class="form-control" 
-                   value="{{ $product->price }}" 
-                   required>
+            <input type="number" name="price" class="form-control" value="{{ $product->price }}" required>
         </div>
 
         {{-- 🔥 FIX IMAGE --}}
@@ -61,17 +48,15 @@
             @if($product->image)
                 <div class="mb-2">
                     <img src="{{ asset('storage/' . $product->image) }}"
-                         width="120"
-                         height="120"
-                         style="object-fit: cover; border-radius: 8px;">
+                        width="120"
+                        height="120"
+                        style="object-fit: cover; border-radius: 8px;">
                 </div>
             @else
                 <p class="text-muted mb-2">Belum ada foto</p>
             @endif
 
-            <input type="file" 
-                   name="image" 
-                   class="form-control">
+            <input type="file" name="image" class="form-control">
 
             <small class="text-muted">
                 Kosongkan jika tidak ingin mengganti foto.

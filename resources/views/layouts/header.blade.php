@@ -36,13 +36,11 @@
                         Home
                     </a>
 
-                    <a href="{{ route('about') }}"
-                        class="nav-item nav-link {{ request()->routeIs('about') ? 'active' : '' }}">
+                    <a href="{{ route('index') }}#about" class="nav-item nav-link">
                         About
                     </a>
 
-                    <a href="{{ route('service') }}"
-                        class="nav-item nav-link {{ request()->routeIs('service') ? 'active' : '' }}">
+                    <a href="{{ route('index') }}#service" class="nav-item nav-link">
                         Service
                     </a>
 

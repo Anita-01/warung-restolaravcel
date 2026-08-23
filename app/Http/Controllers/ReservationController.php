@@ -114,7 +114,6 @@ class ReservationController extends Controller
         }
     }
 
-
     public function queueData()
     {
         $today = now()->toDateString();
@@ -131,8 +130,8 @@ class ReservationController extends Controller
             ->count();
 
         return response()->json([
-        
-            'current_queue' => $current ? (int)$current->queue_number : 0,
+
+            'current_queue' => $current ? (int) $current->queue_number : 0,
 
             'total_waiting' => $totalWaiting,
 
@@ -140,8 +139,6 @@ class ReservationController extends Controller
         ]);
     }
 
-
-   
     public function nextQueue()
     {
         $today = now()->toDateString();
@@ -170,11 +167,9 @@ class ReservationController extends Controller
 
         return response()->json([
             'success' => true,
-            'next_queue' => $next ? (int)$next->queue_number : null
+            'next_queue' => $next ? (int) $next->queue_number : null
         ]);
     }
-
-
 
     public function generateQueueNumber()
     {
@@ -186,7 +181,7 @@ class ReservationController extends Controller
 
         return $lastQueue ? $lastQueue + 1 : 1;
     }
-       public function detailReservation($id)
+    public function detailReservation($id)
     {
         $reservation = Reservation::with('items.product')
             ->findOrFail($id);
@@ -204,40 +199,40 @@ class ReservationController extends Controller
         return $pdf->download('invoice-' . $reservation->id . '.pdf');
     }
 
-   public function traceOrder(Request $request)
-{
-    $request->validate([
-        'antrian' => 'nullable|required_without:email',
-        'email'   => 'nullable|email|required_without:antrian',
-    ]);
+    public function traceOrder(Request $request)
+    {
+        $request->validate([
+            'antrian' => 'nullable|required_without:email',
+            'email' => 'nullable|email|required_without:antrian',
+        ]);
 
-    // PRIORITAS 1: invoice
-    if ($request->antrian) {
-        $reservation = Reservation::with('items.product')
-            ->where('invoice', $request->antrian)
-            ->first();
+        // PRIORITAS 1: invoice
+        if ($request->antrian) {
+            $reservation = Reservation::with('items.product')
+                ->where('invoice', $request->antrian)
+                ->first();
 
-        if (!$reservation) {
-            return back()->with('error', 'Data reservation tidak ditemukan');
+            if (!$reservation) {
+                return back()->with('error', 'Data reservation tidak ditemukan');
+            }
+
+            return view('user.trace-order', [
+                'reservations' => collect([$reservation])
+            ]);
         }
 
-        return view('user.trace-order', [
-            'reservations' => collect([$reservation])
-        ]);
+        // PRIORITAS 2: email
+        $reservations = Reservation::with('items.product')
+            ->where('email', $request->email)
+            ->latest()
+            ->get();
+
+        if ($reservations->isEmpty()) {
+            return back()->with('error', 'Tidak ada reservation untuk email ini');
+        }
+
+        return view('user.trace-order', compact('reservations'));
     }
-
-    // PRIORITAS 2: email
-    $reservations = Reservation::with('items.product')
-        ->where('email', $request->email)
-        ->latest()
-        ->get();
-
-    if ($reservations->isEmpty()) {
-        return back()->with('error', 'Tidak ada reservation untuk email ini');
-    }
-
-    return view('user.trace-order', compact('reservations'));
-}
 
     private function generateInvoice()
     {
