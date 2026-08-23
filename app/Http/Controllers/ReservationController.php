@@ -25,21 +25,6 @@ class ReservationController extends Controller
         $selectedDate = Carbon::parse($request->date)->seconds(0);
         $now = Carbon::now()->seconds(0);
 
-        if ($selectedDate->lt($now)) {
-            return back()->withErrors([
-                'date' => 'Tidak bisa booking di waktu yang sudah lewat'
-            ])->withInput();
-        }
-
-        if ($selectedDate->isSameDay($now)) {
-            $minTime = $now->copy()->addHour();
-
-            if ($selectedDate->lt($minTime)) {
-                return back()->withErrors([
-                    'date' => 'Reservasi hari ini minimal 1 jam dari sekarang'
-                ])->withInput();
-            }
-        }
 
         $products = $request->products ?? [];
         $filteredProducts = array_filter($products, fn($qty) => $qty > 0);
@@ -128,30 +113,25 @@ class ReservationController extends Controller
             ])->withInput();
         }
     }
+
     public function queueData()
     {
         $today = now()->toDateString();
 
-
+        // Antrian yang sedang diproses
         $current = Reservation::whereDate('created_at', $today)
             ->where('status', 'in_preparation')
-            ->orderBy('id') // lebih aman dari queue_number
+            ->orderBy('queue_number')
             ->first();
 
-
+        // Total yang masih menunggu
         $totalWaiting = Reservation::whereDate('created_at', $today)
             ->whereIn('status', ['pending', 'confirmed'])
             ->count();
 
         return response()->json([
 
-            'current_queue' => $current
-                ? (
-                    str_starts_with((string) $current->queue_number, 'A')
-                    ? $current->queue_number
-                    : 'A' . str_pad((int) $current->queue_number, 3, '0', STR_PAD_LEFT)
-                )
-                : '-',
+            'current_queue' => $current ? (int) $current->queue_number : 0,
 
             'total_waiting' => $totalWaiting,
 
@@ -161,24 +141,46 @@ class ReservationController extends Controller
 
     public function nextQueue()
     {
+        $today = now()->toDateString();
 
-        $current = Reservation::where('status', 'in_preparation')->first();
+        // Ambil antrian yang sedang diproses
+        $current = Reservation::whereDate('created_at', $today)
+            ->where('status', 'in_preparation')
+            ->orderBy('queue_number')
+            ->first();
+
+        // Selesaikan yang sekarang
         if ($current) {
             $current->update(['status' => 'served']);
         }
 
-
-        $next = Reservation::whereIn('status', ['pending', 'confirmed'])
+        // Ambil antrian berikutnya
+        $next = Reservation::whereDate('created_at', $today)
+            ->whereIn('status', ['pending', 'confirmed'])
             ->orderBy('queue_number')
             ->first();
 
+        // Set jadi diproses
         if ($next) {
             $next->update(['status' => 'in_preparation']);
         }
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'next_queue' => $next ? (int) $next->queue_number : null
+        ]);
     }
 
+    public function generateQueueNumber()
+    {
+        $today = now()->toDateString();
+
+
+        $lastQueue = Reservation::whereDate('created_at', $today)
+            ->max('queue_number');
+
+        return $lastQueue ? $lastQueue + 1 : 1;
+    }
     public function detailReservation($id)
     {
         $reservation = Reservation::with('items.product')
@@ -200,22 +202,36 @@ class ReservationController extends Controller
     public function traceOrder(Request $request)
     {
         $request->validate([
-            'antrian' => 'required',
-            'phone' => 'required|email',
+            'antrian' => 'nullable|required_without:email',
+            'email' => 'nullable|email|required_without:antrian',
         ]);
 
-        $reservation = Reservation::with('items.product')
-            ->where('invoice', $request->antrian)
-            ->where('email', $request->phone)
-            ->first();
+        // PRIORITAS 1: invoice
+        if ($request->antrian) {
+            $reservation = Reservation::with('items.product')
+                ->where('invoice', $request->antrian)
+                ->first();
 
-        if (!$reservation) {
-            return back()->with([
-                'error' => 'Data reservation tidak ditemukan'
+            if (!$reservation) {
+                return back()->with('error', 'Data reservation tidak ditemukan');
+            }
+
+            return view('user.trace-order', [
+                'reservations' => collect([$reservation])
             ]);
         }
 
-        return view('user.trace-order', compact('reservation'));
+        // PRIORITAS 2: email
+        $reservations = Reservation::with('items.product')
+            ->where('email', $request->email)
+            ->latest()
+            ->get();
+
+        if ($reservations->isEmpty()) {
+            return back()->with('error', 'Tidak ada reservation untuk email ini');
+        }
+
+        return view('user.trace-order', compact('reservations'));
     }
 
     private function generateInvoice()

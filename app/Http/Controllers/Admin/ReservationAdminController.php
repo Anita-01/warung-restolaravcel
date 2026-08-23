@@ -35,6 +35,7 @@ class ReservationAdminController extends Controller
     public function search(Request $request)
     {
         $query = Reservation::latest();
+
         if ($request->key) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->key . '%')
@@ -53,9 +54,6 @@ class ReservationAdminController extends Controller
         ]);
     }
 
-
-
-
     public function updateStatusAjax(Request $request, $id)
     {
         $request->validate([
@@ -66,7 +64,9 @@ class ReservationAdminController extends Controller
 
             $today = now()->toDateString();
 
-            $order = Reservation::with('items.product')->lockForUpdate()->findOrFail($id);
+            $order = Reservation::with('items.product')
+                ->lockForUpdate()
+                ->findOrFail($id);
 
             // FIX ANTRIAN
             if ($request->status == 'in_preparation') {
@@ -98,6 +98,8 @@ class ReservationAdminController extends Controller
             $order->update([
                 'status' => $request->status
             ]);
+
+            // cek git controller aman
         });
 
         return response()->json([
@@ -106,6 +108,7 @@ class ReservationAdminController extends Controller
             'status' => $request->status
         ]);
     }
+
     public function report(Request $request)
     {
         $month = $request->month;
@@ -183,8 +186,58 @@ class ReservationAdminController extends Controller
 
         $data = $query->get();
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.report_pdf', compact('data', 'month'));
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+            'admin.report_pdf',
+            compact('data', 'month')
+        );
 
         return $pdf->download('laporan-' . ($month ?? 'all') . '.pdf');
     }
+
+    public function dashboard()
+{
+    // Statistik
+    $totalAll = Reservation::count();
+
+    $totalCompleted = Reservation::where('status', 'completed')->count();
+
+    $totalPending = Reservation::where('status', 'pending')->count();
+
+    $totalRevenue = Reservation::where('status', 'completed')
+                    ->sum('total_price');
+
+    // Produk Terlaris
+    $productSales = DB::table('reservation_items')
+        ->join('reservations', 'reservation_items.reservation_id', '=', 'reservations.id')
+        ->join('products', 'reservation_items.product_id', '=', 'products.id')
+        ->select(
+            'products.name',
+            DB::raw('SUM(reservation_items.quantity) as total')
+        )
+        ->where('reservations.status','completed')
+        ->groupBy('products.name')
+        ->orderByDesc('total')
+        ->limit(5)
+        ->get();
+
+    // Penjualan 7 Hari Terakhir
+    $dailySales = Reservation::select(
+            DB::raw('DATE(reservation_date) as date'),
+            DB::raw('SUM(total_price) as total')
+        )
+        ->where('status','completed')
+        ->groupBy('date')
+        ->orderBy('date')
+        ->take(7)
+        ->get();
+
+    return view('admin.dashboardadmin', compact(
+        'totalAll',
+        'totalCompleted',
+        'totalPending',
+        'totalRevenue',
+        'productSales',
+        'dailySales'
+    ));
+}
 }

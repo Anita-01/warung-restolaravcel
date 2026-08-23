@@ -1,113 +1,159 @@
+@php
+    $hideHeader = true;
+    $hideFooter = true;
+@endphp
+
 @extends('layouts.app')
 
 @section('content')
-    <div class="container py-5">
+<div class="container py-5">
 
-        <h2 class="mb-4">Detail Order</h2>
+    <h2 class="mb-4 fw-bold">Detail Order</h2>
 
-        <!-- INFO ANTRIAN -->
-        <div class="bg-dark text-white p-3 rounded mb-4">
-            <h5>Nomor Antrian:
-                A{{ str_pad($reservation->queue_number, 3, '0', STR_PAD_LEFT) }}
-            </h5>
-            <h5>Estimasi Awal: {{ $reservation->queue_number * 5 }} menit</h5>
-            <h5>Invoice: {{ $reservation->invoice }}</h5>
-            <h5>Status: {{ $reservation->status }}</h5>
-        </div>
+    <!-- INFO ANTRIAN -->
+    <div class="bg-dark text-white p-4 rounded mb-4 shadow">
+        <h4 class="fw-bold text-warning">
+            Nomor Antrian: 
+            A{{ str_pad($reservation->queue_number, 3, '0', STR_PAD_LEFT) }}
+        </h4>
 
-        <!-- REALTIME -->
-        <div class="mb-4 p-3 bg-secondary text-white rounded">
-            <h5>Antrian Saat Ini: <span id="currentQueue">-</span></h5>
-            <h5>Jumlah Menunggu: <span id="totalWaiting">0</span></h5>
-            <h5>Estimasi Waktu: <span id="waitingTime">0 menit</span></h5>
-        </div>
+        <p class="mb-1">
+            Estimasi Awal: 
+            <span class="text-info fw-bold">
+                {{ $reservation->queue_number * 5 }} menit
+            </span>
+        </p>
 
-        <!-- TABLE ORDER -->
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Produk</th>
-                    <th>Harga</th>
-                    <th>Qty</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php $total = 0; @endphp
+        <p class="mb-1">Invoice: {{ $reservation->invoice }}</p>
 
-                @foreach($reservation->items as $item)
-                    @php $subtotal = $item->price * $item->quantity; @endphp
-                    @php $total += $subtotal; @endphp
+        <p>
+            Status: 
+            <span class="badge bg-success">
+                {{ $reservation->status }}
+            </span>
+        </p>
+    </div>
 
-                    <tr>
-                        <td>{{ $item->product->name }}</td>
-                        <td>Rp {{ number_format($item->price) }}</td>
-                        <td>{{ $item->quantity }}</td>
-                        <td>Rp {{ number_format($subtotal) }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
+    <!-- REALTIME -->
+    <div class="mb-4 p-4 bg-secondary text-white rounded shadow text-center">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <small>Antrian Saat Ini</small><br>
+                <h4 id="currentQueue" class="fw-bold text-warning">-</h4>
+            </div>
 
-            <tfoot>
-                <tr>
-                    <th colspan="3">Total</th>
-                    <th>Rp {{ number_format($total) }}</th>
-                </tr>
-            </tfoot>
-        </table>
+            <div class="col-md-4 mb-3">
+                <small>Jumlah Menunggu</small><br>
+                <h4 id="totalWaiting" class="fw-bold text-light">0</h4>
+            </div>
 
-        <a href="{{ route('invoice.download', $reservation->id) }}" class="btn btn-success mt-3">
-            Download Invoice PDF
-        </a>
-
-        <div class="m-3">
-            <a href="{{ route('index') }}" class="btn btn-secondary">
-                ← Kembali
-            </a>
+            <div class="col-md-4 mb-3">
+                <small>Estimasi Waktu</small><br>
+                <h4 id="waitingTime" class="fw-bold text-info">0 menit</h4>
+            </div>
         </div>
     </div>
+
+    <!-- TABLE ORDER -->
+    <div class="card shadow">
+        <div class="card-body p-0">
+            <table class="table table-bordered mb-0">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th>Produk</th>
+                        <th>Harga</th>
+                        <th>Qty</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @php $total = 0; @endphp
+
+                    @foreach($reservation->items as $item)
+                        @php 
+                            $subtotal = $item->price * $item->quantity; 
+                            $total += $subtotal;
+                        @endphp
+
+                        <tr>
+                            <td>{{ $item->product->name }}</td>
+                            <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                            <td class="text-center">{{ $item->quantity }}</td>
+                            <td>Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+
+                <tfoot>
+                    <tr class="fw-bold">
+                        <td colspan="3" class="text-end">Total</td>
+                        <td>Rp {{ number_format($total, 0, ',', '.') }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- BUTTON -->
+    <div class="mt-4 d-flex gap-2">
+        <a href="{{ route('invoice.download', $reservation->id) }}" 
+           class="btn btn-success">
+           Download Invoice PDF
+        </a>
+
+        <a href="{{ route('index') }}" class="btn btn-secondary">
+            ← Kembali
+        </a>
+    </div>
+
+</div>
 @endsection
 
 @section('scripts')
-    <script>
-        const userQueue = {{ $reservation->queue_number }};
+<script>
+const userQueue = {{ $reservation->queue_number }};
 
-        function formatQueue(num) {
-            return 'A' + String(num).padStart(3, '0');
-        }
+// format A001
+function formatQueue(num) {
+    return 'A' + String(num).padStart(3, '0');
+}
 
-        function loadQueueData() {
-            fetch('/queue-data')
-                .then(res => res.json())
-                .then(data => {
+function loadQueueData() {
+    fetch('/queue-data')
+        .then(res => res.json())
+        .then(data => {
 
-                    let current = data.current_queue || 0;
+            // 🔥 ambil angka dari backend
+            let current = parseInt(data.current_queue);
 
-                    // tampilkan current queue
-                    document.getElementById('currentQueue').innerText =
-                        current ? formatQueue(current) : '-';
+            // tampilkan current queue (AMAN)
+            if (!current || isNaN(current)) {
+                document.getElementById('currentQueue').innerText = '-';
+            } else {
+                document.getElementById('currentQueue').innerText = formatQueue(current);
+            }
 
-                    // jumlah menunggu
-                    document.getElementById('totalWaiting').innerText =
-                        data.total_waiting;
+            // jumlah menunggu
+            document.getElementById('totalWaiting').innerText =
+                data.total_waiting ?? 0;
 
-                    // hitung estimasi REAL
-                    let remaining = userQueue - current;
+            // estimasi waktu
+            let remaining = userQueue - (current || 0);
+            let estimate = remaining > 0 ? remaining * 5 : 0;
 
-                    let estimate = remaining > 0 ? remaining * 5 : 0;
+            document.getElementById('waitingTime').innerText =
+                estimate + " menit";
+        })
+        .catch(err => {
+            console.error('Error ambil queue:', err);
+        });
+}
 
-                    document.getElementById('waitingTime').innerText =
-                        estimate + " menit";
-                })
-                .catch(err => {
-                    console.error('Error ambil queue:', err);
-                });
-        }
+// load pertama
+loadQueueData();
 
-        // load pertama
-        loadQueueData();
-
-        // refresh tiap 5 detik
-        setInterval(loadQueueData, 5000);
-    </script>
+// refresh tiap 5 detik
+setInterval(loadQueueData, 5000);
+</script>
 @endsection

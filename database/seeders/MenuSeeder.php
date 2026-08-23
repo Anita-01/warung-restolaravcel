@@ -11,23 +11,20 @@ class MenuSeeder extends Seeder
     public function run(): void
     {
         // 1. Masukkan Data Kategori
-        $breakfast = Category::create([
-            'name' => 'Breakfast',
-            'icon' => 'fa-coffee',
-            'subtitle' => 'Popular'
-        ]);
+        $breakfast = Category::firstOrCreate(
+            ['name' => 'Breakfast'],
+            ['icon' => 'fa-coffee', 'subtitle' => 'Popular']
+        );
 
-        $lunch = Category::create([
-            'name' => 'Lunch',
-            'icon' => 'fa-hamburger',
-            'subtitle' => 'Special'
-        ]);
+        $lunch = Category::firstOrCreate(
+            ['name' => 'Lunch'],
+            ['icon' => 'fa-hamburger', 'subtitle' => 'Special']
+        );
 
-        $dinner = Category::create([
-            'name' => 'Dinner',
-            'icon' => 'fa-utensils',
-            'subtitle' => 'Lovely'
-        ]);
+        $dinner = Category::firstOrCreate(
+            ['name' => 'Dinner'],
+            ['icon' => 'fa-utensils', 'subtitle' => 'Lovely']
+        );
 
         // 2. Masukkan Data Menu (Contoh)
         // Menu untuk Breakfast

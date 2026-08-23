@@ -6,11 +6,10 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Contracts\Support\Htmlable;
 
 class ProductController extends Controller
 {
-
-
     public function index()
     {
         $products = Product::latest()->paginate(10);
@@ -106,21 +105,21 @@ class ProductController extends Controller
     {
         $key = $request->key;
 
-        $query = Product::with('category')
-            ->latest();
+        $query = Product::with('category')->latest();
 
         if ($key) {
             $query->where('name', 'like', '%' . $key . '%');
         }
 
-        $products = $query->paginate(10);
+        $products = $query->paginate(10)
+            ->appends(['key' => $key])
+            ->withPath('/products/search');
 
         return response()->json([
             'data' => $products->items(),
-            'from' => $products->firstItem(),
-            'to' => $products->lastItem(),
-            'total' => $products->total(),
-            'links' => $products->links()->render()
+            'links' => (string) $products->links(),
+            'current_page' => $products->currentPage(),
+            'total' => $products->total()
         ]);
     }
 

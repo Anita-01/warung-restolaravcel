@@ -13,7 +13,12 @@
 
         h2 {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            text-align: center;
+            margin-bottom: 15px;
         }
 
         table {
@@ -21,20 +26,28 @@
             border-collapse: collapse;
         }
 
-        table,
-        th,
-        td {
+        table, th, td {
             border: 1px solid #000;
         }
 
-        th,
-        td {
+        th, td {
             padding: 6px;
             text-align: center;
+            vertical-align: top;
         }
 
         .text-left {
             text-align: left;
+        }
+
+        .product-box {
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        tr {
+            page-break-inside: avoid;
         }
     </style>
 </head>
@@ -44,7 +57,7 @@
     <h2>LAPORAN RESERVASI (COMPLETED)</h2>
 
     @if($month)
-        <p style="text-align:center;">
+        <p>
             Bulan: {{ \Carbon\Carbon::parse($month)->format('F Y') }}
         </p>
     @endif
@@ -65,6 +78,13 @@
             @php $grandTotal = 0; @endphp
 
             @foreach($data as $res)
+                @php
+                    // HITUNG TOTAL PER RESERVATION DARI ITEM (lebih aman)
+                    $totalPerReservation = $res->items->sum(function($item) {
+                        return $item->price * $item->quantity;
+                    });
+                @endphp
+
                 <tr>
                     <td>{{ $loop->iteration }}</td>
 
@@ -76,23 +96,42 @@
 
                     <td>{{ $res->invoice }}</td>
 
+                    {{-- DETAIL PRODUK --}}
                     <td class="text-left">
-                        @foreach($res->items as $item)
-                            {{ $item->product->name }} (x{{ $item->quantity }})<br>
-                        @endforeach
+                        @forelse($res->items as $item)
+                            <div class="product-box">
+                                <strong>{{ $item->product->name ?? 'Produk tidak ditemukan' }}</strong><br>
+
+                                Qty: {{ $item->quantity }}<br>
+
+                                Harga: Rp {{ number_format($item->price, 0, ',', '.') }}<br>
+
+                                Subtotal:
+                                <strong>
+                                    Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}
+                                </strong>
+                            </div>
+                        @empty
+                            <span>Tidak ada produk</span>
+                        @endforelse
                     </td>
 
                     <td>
-                        Rp {{ number_format($res->total_price, 0, ',', '.') }}
+                        Rp {{ number_format($totalPerReservation, 0, ',', '.') }}
                     </td>
                 </tr>
 
-                @php $grandTotal += $res->total_price; @endphp
+                @php $grandTotal += $totalPerReservation; @endphp
             @endforeach
 
-            <!-- TOTAL -->
+            {{-- GRAND TOTAL --}}
             <tr>
-                <td colspan="5"><strong>TOTAL</strong></td>
+                <td colspan="5">
+                    <strong>
+                        Total Pendapatan Bulan 
+                        {{ $month ? \Carbon\Carbon::parse($month)->format('F Y') : 'Semua' }}
+                    </strong>
+                </td>
                 <td>
                     <strong>
                         Rp {{ number_format($grandTotal, 0, ',', '.') }}
