@@ -23,9 +23,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
 
-        // Force HTTPS URL generator di environment production / SSL
-        if (config('app.env') === 'production' || request()->header('X-Forwarded-Proto') === 'https') {
-            URL::forceScheme('https');
-        }
+        // Paksa semua URL generator menggunakan HTTPS
+        URL::forceScheme('https');
     }
 }
