@@ -2,6 +2,9 @@
 
 @section('content')
 
+    {{-- Meta Tag untuk memaksa seluruh request AJAX berjalan via HTTPS --}}
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
     <style>
         :root {
             --ink-indigo: #1E2A4A;
@@ -107,7 +110,7 @@
             vertical-align: middle;
         }
 
-        /* Status badges — themed, not raw bootstrap colors */
+        /* Status badges */
         .status-badge {
             display: inline-block;
             font-size: 0.72rem;
@@ -118,9 +121,9 @@
         }
 
         .status-pending        { background: var(--turmeric-soft); color: #A5771F; }
-        .status-confirmed       { background: rgba(79, 121, 66, 0.14); color: var(--leaf); }
-        .status-in_preparation  { background: rgba(30, 42, 74, 0.10); color: var(--ink-indigo); }
-        .status-served          { background: rgba(46, 110, 110, 0.14); color: var(--teal); }
+        .status-confirmed      { background: rgba(79, 121, 66, 0.14); color: var(--leaf); }
+        .status-in_preparation { background: rgba(30, 42, 74, 0.10); color: var(--ink-indigo); }
+        .status-served         { background: rgba(46, 110, 110, 0.14); color: var(--teal); }
         .status-completed       { background: rgba(43, 43, 43, 0.10); color: var(--charcoal); }
         .status-canceled        { background: rgba(178, 58, 46, 0.12); color: var(--chili); }
 
@@ -283,10 +286,11 @@
             };
 
             function loadData(page = 1, key = '') {
-                console.log("URL:", "{{ route('orders.search') }}");
+                // Menggunakan relative path agar aman dari isu Mixed Content HTTP/HTTPS
+                let searchUrl = "/admin/orders/search?page=" + page;
 
                 $.ajax({
-                    url: "{{ route('orders.search') }}?page=" + page,
+                    url: searchUrl,
                     method: "GET",
                     data: { key: key },
 
