@@ -136,7 +136,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/admin/users/edit/{id}', [AdminUserController::class, 'edit'])->name('admin.edit');
 
-    Route::post('/admin/users/update/{id}', [AdminUserController::class, 'update'])->name('admin.update');
+    Route::put('/admin/users/update/{id}', [AdminUserController::class, 'update'])->name('admin.update');
 
     Route::delete('/admin/users/delete/{id}', [AdminUserController::class, 'destroy'])->name('admin.delete');
 
